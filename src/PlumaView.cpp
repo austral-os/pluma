@@ -217,6 +217,7 @@ void PlumaView::draw(horizon::GraphicsContext &ctx) {
   horizon::Color bg = horizon::ThemeManager::instance().get_color("textbox_bg");
   horizon::Color text =
       horizon::ThemeManager::instance().get_color("textbox_fg");
+  horizon::Color margin = bg.lighter(20.0f);
   horizon::Color workspace =
       horizon::ThemeManager::instance().get_color("window_bg");
   workspace = workspace.darker(50.0f);
@@ -224,6 +225,7 @@ void PlumaView::draw(horizon::GraphicsContext &ctx) {
   m_editor->setPageBackgroundColor(h_to_p(bg));
   m_editor->setDefaultTextColor(h_to_p(text));
   m_editor->setWorkspaceBackgroundColor(h_to_p(workspace));
+  m_editor->setMarginColor(h_to_p(margin));
 
   // Clear the visible area to prevent smearing when scrolling
   double x1, y1, x2, y2;
