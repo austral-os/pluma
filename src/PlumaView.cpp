@@ -168,15 +168,30 @@ void PlumaView::draw(horizon::GraphicsContext& ctx) {
 void PlumaView::calculate_layout() {
     horizon::Widget::calculate_layout();
     
-    // ScrollArea will sometimes try to resize the child if its width is different than the clip area (if FILL).
-    // We enforce our specific document size here.
-    if (width() != 800 || height() != 1120) {
-        set_size(800, 1120);
+    int doc_w = 800;
+    int doc_h = 1120;
+    
+    if (m_editor) {
+        auto bounds = m_editor->getDocumentBounds();
+        doc_w = static_cast<int>(bounds.width.getValue() / 15.0);
+        doc_h = static_cast<int>(bounds.height.getValue() / 15.0);
+    }
+    
+    int target_w = doc_w;
+    int target_h = doc_h;
+    
+    if (parent()) {
+        if (parent()->width() > target_w) {
+            target_w = parent()->width();
+        }
+    }
+    
+    if (width() != target_w || height() != target_h) {
+        set_size(target_w, target_h);
     }
 
-    printf("PlumaView::calculate_layout called! size: %dx%d\n", width(), height());
     if (m_editor) {
-        m_editor->setViewport(pluma::Twips(width() * 15), pluma::Twips(height() * 15));
+        m_editor->setViewport(pluma::Twips(target_w * 15), pluma::Twips(target_h * 15));
     }
 }
 
