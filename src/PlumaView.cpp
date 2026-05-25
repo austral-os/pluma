@@ -86,9 +86,16 @@ PlumaView::PlumaView() : horizon::Widget() {
         if (application()) {
             application()->set_focused_widget(this);
         }
+        
+        double local_x = ctx.x - x();
+        double local_y = ctx.y - y();
+        
+        // Let the parent ScrollArea handle scrollbar clicks
+        if (local_x > width() - 20 || local_y > height() - 20) {
+            return;
+        }
+        
         if (m_editor) {
-            double local_x = ctx.x;
-            double local_y = ctx.y;
             pluma::MouseButton pbtn = pluma::MouseButton::None;
             if (ctx.button == 272 || ctx.button == 1) pbtn = pluma::MouseButton::Left;
             else if (ctx.button == 273 || ctx.button == 2) pbtn = pluma::MouseButton::Right;
@@ -101,8 +108,8 @@ PlumaView::PlumaView() : horizon::Widget() {
 
     when_mouse_release.connect([this](horizon::MouseButtonEventContext& ctx) {
         if (m_editor) {
-            double local_x = ctx.x;
-            double local_y = ctx.y;
+            double local_x = ctx.x - x();
+            double local_y = ctx.y - y();
             pluma::MouseButton pbtn = pluma::MouseButton::None;
             if (ctx.button == 272 || ctx.button == 1) pbtn = pluma::MouseButton::Left;
             else if (ctx.button == 273 || ctx.button == 2) pbtn = pluma::MouseButton::Right;
@@ -115,10 +122,16 @@ PlumaView::PlumaView() : horizon::Widget() {
 
     when_mouse_drag.connect([this](horizon::MouseMoveEventContext& ctx) {
         if (m_editor) {
-            double local_x = ctx.x;
-            double local_y = ctx.y;
+            double local_x = ctx.x - x();
+            double local_y = ctx.y - y();
             m_editor->onMouseMove(local_x, local_y, static_cast<pluma::ModifierFlags>(ctx.modifiers));
             invalidate();
+        }
+    });
+
+    when_mouse_wheel.connect([this](horizon::MouseWheelEventContext& ctx) {
+        if (parent()) {
+            parent()->when_mouse_wheel.run(ctx);
         }
     });
 
@@ -140,7 +153,9 @@ PlumaView::PlumaView() : horizon::Widget() {
 
         if (handled) {
             ctx.stop_propagation = true;
+            calculate_layout();
             invalidate();
+            if (parent()) parent()->invalidate();
         }
     });
 
@@ -155,14 +170,26 @@ PlumaView::PlumaView() : horizon::Widget() {
 }
 
 void PlumaView::draw(horizon::GraphicsContext& ctx) {
-    printf("PlumaView::draw called! Editor is %p\n", m_editor.get());
     if (!m_editor) return;
 
     cairo_t* cr = static_cast<cairo_t*>(ctx.getNativeContext());
     if (!cr) return;
 
+    cairo_save(cr);
+    cairo_translate(cr, x(), y());
+
+    // Clear the visible area to prevent smearing when scrolling
+    double x1, y1, x2, y2;
+    cairo_clip_extents(cr, &x1, &y1, &x2, &y2);
+    
+    cairo_set_source_rgba(cr, 0.95, 0.95, 0.95, 1.0); // Match workspace_bg_color_
+    cairo_rectangle(cr, x1, y1, x2 - x1, y2 - y1);
+    cairo_fill(cr);
+
     pluma::CairoRenderer renderer(cr);
     m_editor->render(renderer);
+
+    cairo_restore(cr);
 }
 
 void PlumaView::calculate_layout() {

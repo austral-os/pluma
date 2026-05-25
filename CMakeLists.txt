@@ -17,6 +17,8 @@ target_include_directories(pluma-app PRIVATE
     ${CAIRO_INCLUDE_DIRS}
 )
 
+target_link_directories(pluma-app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../lib-pluma/build)
+
 target_link_libraries(pluma-app PRIVATE 
     PkgConfig::HORIZON
     pluma
