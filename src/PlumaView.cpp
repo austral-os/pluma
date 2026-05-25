@@ -126,10 +126,16 @@ PlumaView::PlumaView() : horizon::Widget() {
         if (!m_editor) return;
         
         bool handled = m_editor->onKeyPress(ctx.keysym, static_cast<pluma::ModifierFlags>(ctx.modifiers));
-        
-        if (!ctx.text.empty() && !handled) {
-            m_editor->onTextInput(ctx.text);
-            handled = true;
+        if (!handled) {
+            if (ctx.keysym == 0xff0d || ctx.keysym == 0xff8d) { // Return or KP_Enter
+                m_editor->onTextInput("\n");
+                handled = true;
+            } else if (!ctx.text.empty()) {
+                std::string text = ctx.text;
+                if (text == "\r") text = "\n";
+                m_editor->onTextInput(text);
+                handled = true;
+            }
         }
 
         if (handled) {
