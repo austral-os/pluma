@@ -87,8 +87,8 @@ PlumaView::PlumaView() : horizon::Widget() {
             application()->set_focused_widget(this);
         }
         if (m_editor) {
-            double local_x = ctx.x - this->x();
-            double local_y = ctx.y - this->y();
+            double local_x = ctx.x;
+            double local_y = ctx.y;
             pluma::MouseButton pbtn = pluma::MouseButton::None;
             if (ctx.button == 272 || ctx.button == 1) pbtn = pluma::MouseButton::Left;
             else if (ctx.button == 273 || ctx.button == 2) pbtn = pluma::MouseButton::Right;
@@ -101,8 +101,8 @@ PlumaView::PlumaView() : horizon::Widget() {
 
     when_mouse_release.connect([this](horizon::MouseButtonEventContext& ctx) {
         if (m_editor) {
-            double local_x = ctx.x - this->x();
-            double local_y = ctx.y - this->y();
+            double local_x = ctx.x;
+            double local_y = ctx.y;
             pluma::MouseButton pbtn = pluma::MouseButton::None;
             if (ctx.button == 272 || ctx.button == 1) pbtn = pluma::MouseButton::Left;
             else if (ctx.button == 273 || ctx.button == 2) pbtn = pluma::MouseButton::Right;
@@ -115,8 +115,8 @@ PlumaView::PlumaView() : horizon::Widget() {
 
     when_mouse_drag.connect([this](horizon::MouseMoveEventContext& ctx) {
         if (m_editor) {
-            double local_x = ctx.x - this->x();
-            double local_y = ctx.y - this->y();
+            double local_x = ctx.x;
+            double local_y = ctx.y;
             m_editor->onMouseMove(local_x, local_y, static_cast<pluma::ModifierFlags>(ctx.modifiers));
             invalidate();
         }
