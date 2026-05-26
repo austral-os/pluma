@@ -5,6 +5,8 @@
 #include <horizon/Widget.hpp>
 #include <memory>
 
+#include <horizon/SearchBox.hpp>
+
 namespace pluma_app {
 
 class MainToolbar : public horizon::Widget {
@@ -18,6 +20,12 @@ private:
   horizon::ToolbarButton *m_btn_new = nullptr;
   horizon::ToolbarButton *m_btn_open = nullptr;
   horizon::ToolbarButton *m_btn_save = nullptr;
+  horizon::ToolbarButton *m_btn_cut = nullptr;
+  horizon::ToolbarButton *m_btn_copy = nullptr;
+  horizon::ToolbarButton *m_btn_paste = nullptr;
+  horizon::ToolbarButton *m_btn_undo = nullptr;
+  horizon::ToolbarButton *m_btn_redo = nullptr;
+  horizon::SearchBox *m_search_box = nullptr;
 };
 
 } // namespace pluma_app

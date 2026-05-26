@@ -3,6 +3,7 @@
 #include <horizon/ApplicationWindow.hpp>
 #include <horizon/TabCollection.hpp>
 #include "PlumaView.hpp"
+#include "Ribbon/HomeSection.hpp"
 #include <memory>
 #include <string>
 
@@ -21,8 +22,10 @@ private:
     void create_tab(const std::string& title, const std::string& path = "");
     void new_file();
     PlumaView* get_current_view() const;
+    void update_status_bar();
 
     horizon::TabCollection* m_tabs = nullptr;
+    std::unique_ptr<HomeSection> m_section_home;
 };
 
 } // namespace pluma_app
