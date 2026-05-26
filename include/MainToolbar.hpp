@@ -12,7 +12,10 @@ public:
   MainToolbar();
   virtual ~MainToolbar() = default;
 
+  horizon::EventsManager<horizon::EventContext> when_new_clicked;
+
 private:
+  horizon::ToolbarButton *m_btn_new = nullptr;
   horizon::ToolbarButton *m_btn_open = nullptr;
   horizon::ToolbarButton *m_btn_save = nullptr;
 };

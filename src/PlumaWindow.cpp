@@ -15,6 +15,10 @@ PlumaWindow::PlumaWindow() : horizon::ApplicationWindow("Pluma") {
     auto* tb_ptr = main_toolbar.get();
     toolbar()->add_toolbar_widget(std::move(main_toolbar));
 
+    tb_ptr->when_new_clicked.connect([this](horizon::EventContext&) {
+        this->new_file();
+    });
+
     auto tabs = std::make_unique<horizon::TabCollection>();
     m_tabs = tabs.get();
     m_tabs->set_smart_header(true);

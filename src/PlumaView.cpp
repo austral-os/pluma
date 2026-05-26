@@ -1,9 +1,9 @@
 #include "PlumaView.hpp"
 #include <horizon/GraphicsContext.hpp>
+#include <pluma/Plugins/PlumaArchiveExporter.hpp>
+#include <pluma/Plugins/PlumaArchiveImporter.hpp>
 #include <pluma/Render/CairoRenderer.hpp>
 #include <pluma/Typography/DummyTypography.hpp>
-#include <pluma/Plugins/PlumaArchiveImporter.hpp>
-#include <pluma/Plugins/PlumaArchiveExporter.hpp>
 
 #include <horizon/ThemeManager.hpp>
 #include <horizon/WaylandWindow.hpp>
@@ -88,8 +88,7 @@ PlumaView::PlumaView() : horizon::Widget() {
   m_editor->setMarginColor(pluma::Color(0xFF00AA00));
   m_editor->showMargins();
 
-  m_editor->loadText("Bienvenido a Pluma!\nEste es el procesador de texto "
-                     "basado en libhorizon y libpluma.");
+  m_editor->loadText("");
 
   set_background_color(horizon::Color(0.8f, 0.8f, 0.8f, 1.0f));
   set_focusable(true);
@@ -284,21 +283,23 @@ int PlumaView::preferred_height() const {
 
 int PlumaView::preferred_height(int /*width*/) const { return 1120; }
 
-bool PlumaView::load_document(const std::string& path) {
-    if (!m_editor) return false;
-    pluma::plugins::PlumaArchiveImporter importer;
-    bool success = importer.importFile(path, *m_editor);
-    if (success) {
-        calculate_layout();
-        invalidate();
-    }
-    return success;
+bool PlumaView::load_document(const std::string &path) {
+  if (!m_editor)
+    return false;
+  pluma::plugins::PlumaArchiveImporter importer;
+  bool success = importer.importFile(path, *m_editor);
+  if (success) {
+    calculate_layout();
+    invalidate();
+  }
+  return success;
 }
 
-bool PlumaView::save_document(const std::string& path) {
-    if (!m_editor) return false;
-    pluma::plugins::PlumaArchiveExporter exporter;
-    return exporter.exportToFile(path, *m_editor);
+bool PlumaView::save_document(const std::string &path) {
+  if (!m_editor)
+    return false;
+  pluma::plugins::PlumaArchiveExporter exporter;
+  return exporter.exportToFile(path, *m_editor);
 }
 
 } // namespace pluma_app
