@@ -24,10 +24,14 @@ public:
     bool load_document(const std::string& path);
     bool save_document(const std::string& path);
 
+    const std::string& current_path() const { return m_current_path; }
+    void set_current_path(const std::string& path) { m_current_path = path; }
+
     std::shared_ptr<pluma::PlumaEditor> editor() { return m_editor; }
 
 private:
     std::shared_ptr<pluma::PlumaEditor> m_editor;
+    std::string m_current_path;
 };
 
 } // namespace pluma_app

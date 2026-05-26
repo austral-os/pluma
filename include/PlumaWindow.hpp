@@ -1,6 +1,7 @@
 #pragma once
 
 #include <horizon/ApplicationWindow.hpp>
+#include <horizon/TabCollection.hpp>
 #include "PlumaView.hpp"
 #include <memory>
 #include <string>
@@ -17,9 +18,11 @@ public:
 
 private:
     void setup_events();
+    void create_tab(const std::string& title, const std::string& path = "");
+    void new_file();
+    PlumaView* get_current_view() const;
 
-    PlumaView* m_pluma_view = nullptr;
-    std::string m_current_path;
+    horizon::TabCollection* m_tabs = nullptr;
 };
 
 } // namespace pluma_app
