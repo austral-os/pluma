@@ -21,6 +21,9 @@ public:
     // We can also implement mouse/keyboard events if needed
     // bool on_mouse_press(double x, double y, horizon::MouseButton button, uint32_t modifiers) override;
     
+    bool load_document(const std::string& path);
+    bool save_document(const std::string& path);
+
     std::shared_ptr<pluma::PlumaEditor> editor() { return m_editor; }
 
 private:

@@ -2,6 +2,8 @@
 #include <horizon/GraphicsContext.hpp>
 #include <pluma/Render/CairoRenderer.hpp>
 #include <pluma/Typography/DummyTypography.hpp>
+#include <pluma/Plugins/PlumaArchiveImporter.hpp>
+#include <pluma/Plugins/PlumaArchiveExporter.hpp>
 
 #include <horizon/ThemeManager.hpp>
 #include <horizon/WaylandWindow.hpp>
@@ -281,5 +283,22 @@ int PlumaView::preferred_height() const {
 }
 
 int PlumaView::preferred_height(int /*width*/) const { return 1120; }
+
+bool PlumaView::load_document(const std::string& path) {
+    if (!m_editor) return false;
+    pluma::plugins::PlumaArchiveImporter importer;
+    bool success = importer.importFile(path, *m_editor);
+    if (success) {
+        calculate_layout();
+        invalidate();
+    }
+    return success;
+}
+
+bool PlumaView::save_document(const std::string& path) {
+    if (!m_editor) return false;
+    pluma::plugins::PlumaArchiveExporter exporter;
+    return exporter.exportToFile(path, *m_editor);
+}
 
 } // namespace pluma_app
