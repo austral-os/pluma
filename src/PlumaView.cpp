@@ -30,7 +30,18 @@ public:
     float size_pt = font->getDescriptor().size_pt;
     std::string family = font->getDescriptor().family;
     if (family.empty()) family = "sans-serif";
-    cairo_select_font_face(cr_, family.c_str(), CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+
+    cairo_font_weight_t weight = CAIRO_FONT_WEIGHT_NORMAL;
+    if (static_cast<uint16_t>(font->getDescriptor().weight) >= 700) {
+        weight = CAIRO_FONT_WEIGHT_BOLD;
+    }
+    
+    cairo_font_slant_t slant = CAIRO_FONT_SLANT_NORMAL;
+    if (font->getDescriptor().italic) {
+        slant = CAIRO_FONT_SLANT_ITALIC;
+    }
+
+    cairo_select_font_face(cr_, family.c_str(), slant, weight);
     cairo_set_font_size(cr_, size_pt);
 
     pluma::ShapedTextRun run;

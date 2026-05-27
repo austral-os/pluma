@@ -140,6 +140,77 @@ void PlumaWindow::create_tab(const std::string &title,
           }
         }
       });
+
+  m_home_sections.back()->group_styles()->when_button_clicked.connect(
+      [this, view_ptr = raw_view_ptr](horizon::GroupButtonClickEvent &ctx) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          auto selection = editor->getSelectionRange();
+          if (!selection.isCollapsed()) {
+            auto current_style = editor->getFormatRegistry().getStyleAt(selection.getStart());
+            
+            if (ctx.button_index == 0) { // Bold (B)
+              bool is_bold = false;
+              if (auto fw = current_style.get(pluma::PropertyId::FontWeight)) {
+                is_bold = (std::get<uint16_t>(*fw) >= 700);
+              }
+              editor->applyStyle(selection.getStart(), selection.getLength(),
+                                 pluma::PropertyId::FontWeight, static_cast<uint16_t>(is_bold ? 400 : 700));
+            } else if (ctx.button_index == 1) { // Italic (I)
+              bool is_italic = false;
+              if (auto fi = current_style.get(pluma::PropertyId::FontStyleItalic)) {
+                is_italic = std::get<bool>(*fi);
+              }
+              editor->applyStyle(selection.getStart(), selection.getLength(),
+                                 pluma::PropertyId::FontStyleItalic, !is_italic);
+            } else if (ctx.button_index == 2) { // Underline (U)
+              pluma::TextDecoration dec = pluma::TextDecoration::None;
+              if (auto d = current_style.get(pluma::PropertyId::Decoration)) {
+                if (std::get<pluma::TextDecoration>(*d) == pluma::TextDecoration::None) {
+                  dec = pluma::TextDecoration::Underline;
+                }
+              } else {
+                dec = pluma::TextDecoration::Underline;
+              }
+              editor->applyStyle(selection.getStart(), selection.getLength(),
+                                 pluma::PropertyId::Decoration, dec);
+            } else if (ctx.button_index == 3) { // Superscript (x²)
+              pluma::VerticalAlign va = pluma::VerticalAlign::Baseline;
+              if (auto v = current_style.get(pluma::PropertyId::VerticalAlignment)) {
+                if (std::get<pluma::VerticalAlign>(*v) != pluma::VerticalAlign::Superscript) {
+                  va = pluma::VerticalAlign::Superscript;
+                } else {
+                  va = pluma::VerticalAlign::Baseline;
+                }
+              } else {
+                va = pluma::VerticalAlign::Superscript;
+              }
+              editor->applyStyle(selection.getStart(), selection.getLength(),
+                                 pluma::PropertyId::VerticalAlignment, va);
+            } else if (ctx.button_index == 4) { // Subscript (x₂)
+              pluma::VerticalAlign va = pluma::VerticalAlign::Baseline;
+              if (auto v = current_style.get(pluma::PropertyId::VerticalAlignment)) {
+                if (std::get<pluma::VerticalAlign>(*v) != pluma::VerticalAlign::Subscript) {
+                  va = pluma::VerticalAlign::Subscript;
+                } else {
+                  va = pluma::VerticalAlign::Baseline;
+                }
+              } else {
+                va = pluma::VerticalAlign::Subscript;
+              }
+              editor->applyStyle(selection.getStart(), selection.getLength(),
+                                 pluma::PropertyId::VerticalAlignment, va);
+            }
+
+            view_ptr->calculate_layout();
+            view_ptr->invalidate();
+            if (view_ptr->parent()) {
+              view_ptr->parent()->calculate_layout();
+              view_ptr->parent()->invalidate();
+            }
+          }
+        }
+      });
 }
 
 PlumaView *PlumaWindow::get_current_view() const {
