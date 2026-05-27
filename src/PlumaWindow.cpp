@@ -2,23 +2,21 @@
 #include "MainToolbar.hpp"
 #include "Ribbon/HomeSection.hpp"
 #include <filesystem>
+#include <horizon/GraphicsContext.hpp>
 #include <horizon/Label.hpp>
 #include <horizon/Logger.hpp>
 #include <horizon/RibbonToolbar.hpp>
 #include <horizon/ScrollArea.hpp>
 #include <horizon/Toolbar.hpp>
+#include <horizon/Vault.hpp>
 #include <horizon/Widget.hpp>
 #include <pluma/Style/StyleProperties.hpp>
-#include <horizon/Vault.hpp>
-#include <horizon/GraphicsContext.hpp>
 
 namespace pluma_app {
 
 class ColorPaletteItem : public horizon::Widget {
 public:
-  ColorPaletteItem(horizon::Color c) : m_color(c) {
-    set_focusable(true);
-  }
+  ColorPaletteItem(horizon::Color c) : m_color(c) { set_focusable(true); }
 
   void draw(horizon::GraphicsContext &ctx) override {
     ctx.setColor(m_color);
@@ -97,7 +95,7 @@ void PlumaWindow::create_tab(const std::string &title,
   auto scroll_area = std::make_unique<horizon::ScrollArea>();
   auto pluma_view = std::make_unique<PlumaView>();
 
-  PlumaView* raw_view_ptr = pluma_view.get();
+  PlumaView *raw_view_ptr = pluma_view.get();
 
   if (!path.empty()) {
     pluma_view->load_document(path);
@@ -123,7 +121,7 @@ void PlumaWindow::create_tab(const std::string &title,
         if (view_ptr && view_ptr->editor()) {
           auto editor = view_ptr->editor();
           auto selection = editor->getSelectionRange();
-          LOG_INFO << "Selection start: " << selection.getStart() 
+          LOG_INFO << "Selection start: " << selection.getStart()
                    << " length: " << selection.getLength();
           if (!selection.isCollapsed()) {
             editor->applyStyle(selection.getStart(), selection.getLength(),
@@ -149,8 +147,9 @@ void PlumaWindow::create_tab(const std::string &title,
             float size = 12.0f;
             try {
               size = std::stof(ctx.item.id);
-            } catch (...) {}
-            
+            } catch (...) {
+            }
+
             editor->applyStyle(selection.getStart(), selection.getLength(),
                                pluma::PropertyId::FontSize, size);
             view_ptr->calculate_layout();
@@ -170,26 +169,31 @@ void PlumaWindow::create_tab(const std::string &title,
           auto editor = view_ptr->editor();
           auto selection = editor->getSelectionRange();
           if (!selection.isCollapsed()) {
-            auto current_style = editor->getFormatRegistry().getStyleAt(selection.getStart());
-            
+            auto current_style =
+                editor->getFormatRegistry().getStyleAt(selection.getStart());
+
             if (ctx.button_index == 0) { // Bold (B)
               bool is_bold = false;
               if (auto fw = current_style.get(pluma::PropertyId::FontWeight)) {
                 is_bold = (std::get<uint16_t>(*fw) >= 700);
               }
               editor->applyStyle(selection.getStart(), selection.getLength(),
-                                 pluma::PropertyId::FontWeight, static_cast<uint16_t>(is_bold ? 400 : 700));
+                                 pluma::PropertyId::FontWeight,
+                                 static_cast<uint16_t>(is_bold ? 400 : 700));
             } else if (ctx.button_index == 1) { // Italic (I)
               bool is_italic = false;
-              if (auto fi = current_style.get(pluma::PropertyId::FontStyleItalic)) {
+              if (auto fi =
+                      current_style.get(pluma::PropertyId::FontStyleItalic)) {
                 is_italic = std::get<bool>(*fi);
               }
               editor->applyStyle(selection.getStart(), selection.getLength(),
-                                 pluma::PropertyId::FontStyleItalic, !is_italic);
+                                 pluma::PropertyId::FontStyleItalic,
+                                 !is_italic);
             } else if (ctx.button_index == 2) { // Underline (U)
               pluma::TextDecoration dec = pluma::TextDecoration::None;
               if (auto d = current_style.get(pluma::PropertyId::Decoration)) {
-                if (std::get<pluma::TextDecoration>(*d) == pluma::TextDecoration::None) {
+                if (std::get<pluma::TextDecoration>(*d) ==
+                    pluma::TextDecoration::None) {
                   dec = pluma::TextDecoration::Underline;
                 }
               } else {
@@ -199,8 +203,10 @@ void PlumaWindow::create_tab(const std::string &title,
                                  pluma::PropertyId::Decoration, dec);
             } else if (ctx.button_index == 3) { // Superscript (x²)
               pluma::VerticalAlign va = pluma::VerticalAlign::Baseline;
-              if (auto v = current_style.get(pluma::PropertyId::VerticalAlignment)) {
-                if (std::get<pluma::VerticalAlign>(*v) != pluma::VerticalAlign::Superscript) {
+              if (auto v =
+                      current_style.get(pluma::PropertyId::VerticalAlignment)) {
+                if (std::get<pluma::VerticalAlign>(*v) !=
+                    pluma::VerticalAlign::Superscript) {
                   va = pluma::VerticalAlign::Superscript;
                 } else {
                   va = pluma::VerticalAlign::Baseline;
@@ -212,8 +218,10 @@ void PlumaWindow::create_tab(const std::string &title,
                                  pluma::PropertyId::VerticalAlignment, va);
             } else if (ctx.button_index == 4) { // Subscript (x₂)
               pluma::VerticalAlign va = pluma::VerticalAlign::Baseline;
-              if (auto v = current_style.get(pluma::PropertyId::VerticalAlignment)) {
-                if (std::get<pluma::VerticalAlign>(*v) != pluma::VerticalAlign::Subscript) {
+              if (auto v =
+                      current_style.get(pluma::PropertyId::VerticalAlignment)) {
+                if (std::get<pluma::VerticalAlign>(*v) !=
+                    pluma::VerticalAlign::Subscript) {
                   va = pluma::VerticalAlign::Subscript;
                 } else {
                   va = pluma::VerticalAlign::Baseline;
@@ -241,8 +249,9 @@ void PlumaWindow::create_tab(const std::string &title,
           auto editor = view_ptr->editor();
           auto selection = editor->getSelectionRange();
           if (!selection.isCollapsed()) {
-            auto current_style = editor->getFormatRegistry().getStyleAt(selection.getStart());
-            
+            auto current_style =
+                editor->getFormatRegistry().getStyleAt(selection.getStart());
+
             float current_size = 12.0f;
             if (auto fs = current_style.get(pluma::PropertyId::FontSize)) {
               current_size = std::get<float>(*fs);
@@ -252,7 +261,8 @@ void PlumaWindow::create_tab(const std::string &title,
               current_size += 2.0f;
             } else if (ctx.button_index == 1) { // A-
               current_size -= 2.0f;
-              if (current_size < 4.0f) current_size = 4.0f; // Minimum size limit
+              if (current_size < 4.0f)
+                current_size = 4.0f; // Minimum size limit
             }
 
             editor->applyStyle(selection.getStart(), selection.getLength(),
@@ -277,6 +287,7 @@ void PlumaWindow::create_tab(const std::string &title,
           content->set_spacing(8);
 
           auto title = std::make_unique<horizon::Label>("Text Color");
+          title->set_fixed_size(30);
           content->add_child(std::move(title));
 
           auto grid = std::make_unique<horizon::Widget>();
@@ -284,53 +295,62 @@ void PlumaWindow::create_tab(const std::string &title,
           grid->set_spacing(4);
 
           std::vector<horizon::Color> base_colors = {
-              {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, {0.8f, 0.8f, 0.8f, 1.0f}, {0.1f, 0.2f, 0.4f, 1.0f},
-              {0.2f, 0.4f, 0.8f, 1.0f}, {0.9f, 0.4f, 0.1f, 1.0f}, {0.6f, 0.6f, 0.6f, 1.0f}, {0.9f, 0.7f, 0.1f, 1.0f},
-              {0.3f, 0.6f, 0.9f, 1.0f}, {0.4f, 0.7f, 0.3f, 1.0f}
-          };
+              {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f},
+              {0.8f, 0.8f, 0.8f, 1.0f}, {0.1f, 0.2f, 0.4f, 1.0f},
+              {0.2f, 0.4f, 0.8f, 1.0f}, {0.9f, 0.4f, 0.1f, 1.0f},
+              {0.6f, 0.6f, 0.6f, 1.0f}, {0.9f, 0.7f, 0.1f, 1.0f},
+              {0.3f, 0.6f, 0.9f, 1.0f}, {0.4f, 0.7f, 0.3f, 1.0f}};
 
           for (size_t row_idx = 0; row_idx < 6; ++row_idx) {
-              auto row = std::make_unique<horizon::Widget>();
-              row->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
-              row->set_spacing(2);
+            auto row = std::make_unique<horizon::Widget>();
+            row->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
+            row->set_spacing(2);
 
-              for (size_t col_idx = 0; col_idx < 10; ++col_idx) {
-                  horizon::Color c = base_colors[col_idx];
-                  if (row_idx > 0) {
-                      float factor = 1.0f - (row_idx * 0.15f); // darken
-                      if (col_idx == 0 || col_idx == 2) { // lighten for black/dark colors
-                          factor = 1.0f - ((5 - row_idx) * 0.15f);
-                      }
-                      c.r *= factor; c.g *= factor; c.b *= factor;
-                  }
-                  
-                  auto btn = std::make_unique<ColorPaletteItem>(c);
-                  btn->when_mouse_press.connect([this, view_ptr, c](auto&) {
-                      if (view_ptr && view_ptr->editor()) {
-                          auto editor = view_ptr->editor();
-                          auto selection = editor->getSelectionRange();
-                          if (!selection.isCollapsed()) {
-                              uint32_t argb = (255 << 24) | ((int)(c.r * 255) << 16) | ((int)(c.g * 255) << 8) | ((int)(c.b * 255));
-                              editor->applyStyle(selection.getStart(), selection.getLength(), pluma::PropertyId::TextColor, argb);
-                              view_ptr->calculate_layout();
-                              view_ptr->invalidate();
-                              if (view_ptr->parent()) {
-                                  view_ptr->parent()->calculate_layout();
-                                  view_ptr->parent()->invalidate();
-                              }
-                          }
-                      }
-                      application()->close_vault();
-                  });
-                  row->add_child(std::move(btn));
+            for (size_t col_idx = 0; col_idx < 10; ++col_idx) {
+              horizon::Color c = base_colors[col_idx];
+              if (row_idx > 0) {
+                float factor = 1.0f - (row_idx * 0.15f); // darken
+                if (col_idx == 0 ||
+                    col_idx == 2) { // lighten for black/dark colors
+                  factor = 1.0f - ((5 - row_idx) * 0.15f);
+                }
+                c.r *= factor;
+                c.g *= factor;
+                c.b *= factor;
               }
-              grid->add_child(std::move(row));
+
+              auto btn = std::make_unique<ColorPaletteItem>(c);
+              btn->when_mouse_press.connect([this, view_ptr, c](auto &) {
+                if (view_ptr && view_ptr->editor()) {
+                  auto editor = view_ptr->editor();
+                  auto selection = editor->getSelectionRange();
+                  if (!selection.isCollapsed()) {
+                    uint32_t argb = (255 << 24) | ((int)(c.r * 255) << 16) |
+                                    ((int)(c.g * 255) << 8) |
+                                    ((int)(c.b * 255));
+                    editor->applyStyle(selection.getStart(),
+                                       selection.getLength(),
+                                       pluma::PropertyId::TextColor, argb);
+                    view_ptr->calculate_layout();
+                    view_ptr->invalidate();
+                    if (view_ptr->parent()) {
+                      view_ptr->parent()->calculate_layout();
+                      view_ptr->parent()->invalidate();
+                    }
+                  }
+                }
+                application()->close_vault();
+              });
+              row->add_child(std::move(btn));
+            }
+            grid->add_child(std::move(row));
           }
 
           content->add_child(std::move(grid));
           content->set_size(280, 200);
           vault->set_content(std::move(content));
-          application()->show_vault(vault.release(), -1, -1, 0, m_home_sections.back()->group_colors());
+          application()->show_vault(vault.release(), -1, -1, 0,
+                                    m_home_sections.back()->group_colors());
         }
       });
 }
@@ -338,12 +358,14 @@ void PlumaWindow::create_tab(const std::string &title,
 PlumaView *PlumaWindow::get_current_view() const {
   if (!m_tabs)
     return nullptr;
-  auto *tab_container = dynamic_cast<horizon::Widget *>(m_tabs->current_tab_body());
+  auto *tab_container =
+      dynamic_cast<horizon::Widget *>(m_tabs->current_tab_body());
   if (tab_container && tab_container->children().size() >= 2) {
-    auto *scroll = dynamic_cast<horizon::ScrollArea *>(tab_container->children()[1].get());
+    auto *scroll =
+        dynamic_cast<horizon::ScrollArea *>(tab_container->children()[1].get());
     if (scroll) {
-      for (const auto& child : scroll->children()) {
-        if (auto* view = dynamic_cast<PlumaView*>(child.get())) {
+      for (const auto &child : scroll->children()) {
+        if (auto *view = dynamic_cast<PlumaView *>(child.get())) {
           return view;
         }
       }
