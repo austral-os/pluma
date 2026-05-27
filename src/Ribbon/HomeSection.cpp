@@ -108,6 +108,67 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   col_container->add_child(std::move(row2));
 
   m_section_font->add_widget(std::move(col_container));
+
+  // Paragraph Section
+  m_section_paragraph = ribbon->add_section(tab_index, "Paragraph");
+
+  auto para_container = std::make_unique<horizon::Widget>();
+  para_container->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+  para_container->set_spacing(4);
+  para_container->set_fixed_size(180);
+
+  auto para_row1 = std::make_unique<horizon::Widget>();
+  para_row1->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
+  para_row1->set_spacing(4);
+
+  auto btn_lists = std::make_unique<horizon::GroupButton>();
+  btn_lists->set_fixed_size(80);
+  btn_lists->add_item("-");
+  btn_lists->add_item("1.");
+  if (btn_lists->children().size() >= 2) {
+      set_tooltip(btn_lists->children()[0].get(), "Viñetas");
+      set_tooltip(btn_lists->children()[1].get(), "Numeración");
+  }
+  m_group_lists = btn_lists.get();
+
+  auto btn_indent = std::make_unique<horizon::GroupButton>();
+  btn_indent->set_fixed_size(80);
+  btn_indent->add_item("<");
+  btn_indent->add_item(">");
+  if (btn_indent->children().size() >= 2) {
+      set_tooltip(btn_indent->children()[0].get(), "Disminuir sangría");
+      set_tooltip(btn_indent->children()[1].get(), "Aumentar sangría");
+  }
+  m_group_indent = btn_indent.get();
+
+  para_row1->add_child(std::move(btn_lists));
+  para_row1->add_child(std::move(btn_indent));
+
+  auto para_row2 = std::make_unique<horizon::Widget>();
+  para_row2->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
+  para_row2->set_spacing(4);
+
+  auto btn_align = std::make_unique<MultiToggleGroupButton>();
+  btn_align->set_fixed_size(160);
+  btn_align->add_item("L");
+  btn_align->add_item("C");
+  btn_align->add_item("R");
+  btn_align->add_item("J");
+  if (btn_align->children().size() >= 4) {
+      set_tooltip(btn_align->children()[0].get(), "Alinear a la izquierda");
+      set_tooltip(btn_align->children()[1].get(), "Centrar");
+      set_tooltip(btn_align->children()[2].get(), "Alinear a la derecha");
+      set_tooltip(btn_align->children()[3].get(), "Justificar");
+  }
+  m_group_alignment = btn_align.get();
+
+  para_row2->add_child(std::move(btn_align));
+
+  para_container->add_child(std::move(para_row1));
+  para_container->add_child(horizon::Spacer(1));
+  para_container->add_child(std::move(para_row2));
+
+  m_section_paragraph->add_widget(std::move(para_container));
 }
 
 } // namespace pluma_app

@@ -251,6 +251,44 @@ void PlumaWindow::create_tab(const std::string &title,
         }
       });
 
+  m_home_sections.back()->group_alignment()->when_button_clicked.connect(
+      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr](horizon::GroupButtonClickEvent &ctx) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          auto selection = editor->getSelectionRange();
+          
+          uint32_t para_start = selection.getStart();
+          std::string text = editor->getText();
+          while (para_start > 0 && text[para_start - 1] != '\n') {
+              para_start--;
+          }
+          
+          uint32_t para_end = selection.getEnd();
+          while (para_end < text.length() && text[para_end] != '\n') {
+              para_end++;
+          }
+          
+          uint32_t length = para_end - para_start;
+          if (length == 0) length = 1; // Ensure the style sticks
+
+          pluma::TextAlign align = pluma::TextAlign::Left;
+          if (ctx.button_index == 1) align = pluma::TextAlign::Center;
+          else if (ctx.button_index == 2) align = pluma::TextAlign::Right;
+          else if (ctx.button_index == 3) align = pluma::TextAlign::Justify;
+
+          editor->applyStyle(para_start, length,
+                             pluma::PropertyId::TextAlignment, align);
+
+          view_ptr->calculate_layout();
+          view_ptr->invalidate();
+          if (view_ptr->parent()) {
+            view_ptr->parent()->calculate_layout();
+            view_ptr->parent()->invalidate();
+          }
+          this->update_ribbon_state(view_ptr, home_ptr);
+        }
+      });
+
   m_home_sections.back()->group_font_size()->when_button_clicked.connect(
       [this, view_ptr = raw_view_ptr](horizon::GroupButtonClickEvent &ctx) {
         if (view_ptr && view_ptr->editor()) {
@@ -575,6 +613,15 @@ void PlumaWindow::update_ribbon_state(PlumaView* view, HomeSection* home_sec) {
     }
     home_sec->group_styles()->set_item_active(3, is_super);
     home_sec->group_styles()->set_item_active(4, is_sub);
+
+    pluma::TextAlign align = pluma::TextAlign::Left;
+    if (auto ta = style.get(pluma::PropertyId::TextAlignment)) {
+        align = std::get<pluma::TextAlign>(*ta);
+    }
+    home_sec->group_alignment()->set_item_active(0, align == pluma::TextAlign::Left);
+    home_sec->group_alignment()->set_item_active(1, align == pluma::TextAlign::Center);
+    home_sec->group_alignment()->set_item_active(2, align == pluma::TextAlign::Right);
+    home_sec->group_alignment()->set_item_active(3, align == pluma::TextAlign::Justify);
 }
 
 } // namespace pluma_app
