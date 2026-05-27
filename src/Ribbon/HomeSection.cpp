@@ -2,8 +2,8 @@
 #include "utils/FontUtils.hpp"
 
 #include <Spacer.hpp>
-#include <horizon/Widget.hpp>
 #include <horizon/Notification.hpp>
+#include <horizon/Widget.hpp>
 
 namespace pluma_app {
 
@@ -49,18 +49,18 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   combo_size->set_fixed_size(80);
   m_combo_font_size = combo_size.get();
 
-  auto set_tooltip = [](horizon::Widget* w, const std::string& msg) {
-      auto t = std::make_unique<horizon::Notification>();
-      t->set_message(msg);
-      w->set_tooltip(std::move(t));
+  auto set_tooltip = [](horizon::Widget *w, const std::string &msg) {
+    auto t = std::make_unique<horizon::Notification>();
+    t->set_message(msg);
+    w->set_tooltip(std::move(t));
   };
 
   auto group_btn = std::make_unique<horizon::GroupButton>();
   group_btn->add_item("A+");
   group_btn->add_item("A-");
   if (group_btn->children().size() >= 2) {
-      set_tooltip(group_btn->children()[0].get(), "Aumentar tamaño de fuente");
-      set_tooltip(group_btn->children()[1].get(), "Disminuir tamaño de fuente");
+    set_tooltip(group_btn->children()[0].get(), "Aumentar tamaño de fuente");
+    set_tooltip(group_btn->children()[1].get(), "Disminuir tamaño de fuente");
   }
   group_btn->set_fixed_size(80);
   m_group_font_size = group_btn.get();
@@ -81,11 +81,11 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   btn_styles->add_item("x²");
   btn_styles->add_item("x₂");
   if (btn_styles->children().size() >= 5) {
-      set_tooltip(btn_styles->children()[0].get(), "Negrita");
-      set_tooltip(btn_styles->children()[1].get(), "Cursiva");
-      set_tooltip(btn_styles->children()[2].get(), "Subrayado");
-      set_tooltip(btn_styles->children()[3].get(), "Superíndice");
-      set_tooltip(btn_styles->children()[4].get(), "Subíndice");
+    set_tooltip(btn_styles->children()[0].get(), "Negrita");
+    set_tooltip(btn_styles->children()[1].get(), "Cursiva");
+    set_tooltip(btn_styles->children()[2].get(), "Subrayado");
+    set_tooltip(btn_styles->children()[3].get(), "Superíndice");
+    set_tooltip(btn_styles->children()[4].get(), "Subíndice");
   }
   m_group_styles = btn_styles.get();
 
@@ -94,8 +94,8 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   btn_colors->add_item("A_");
   btn_colors->add_item("ab");
   if (btn_colors->children().size() >= 2) {
-      set_tooltip(btn_colors->children()[0].get(), "Color de texto");
-      set_tooltip(btn_colors->children()[1].get(), "Color de fondo");
+    set_tooltip(btn_colors->children()[0].get(), "Color de texto");
+    set_tooltip(btn_colors->children()[1].get(), "Color de fondo");
   }
   m_group_colors = btn_colors.get();
 
@@ -126,8 +126,8 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   btn_lists->add_item("-");
   btn_lists->add_item("1.");
   if (btn_lists->children().size() >= 2) {
-      set_tooltip(btn_lists->children()[0].get(), "Viñetas");
-      set_tooltip(btn_lists->children()[1].get(), "Numeración");
+    set_tooltip(btn_lists->children()[0].get(), "Viñetas");
+    set_tooltip(btn_lists->children()[1].get(), "Numeración");
   }
   m_group_lists = btn_lists.get();
 
@@ -136,8 +136,8 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   btn_indent->add_item("<");
   btn_indent->add_item(">");
   if (btn_indent->children().size() >= 2) {
-      set_tooltip(btn_indent->children()[0].get(), "Disminuir sangría");
-      set_tooltip(btn_indent->children()[1].get(), "Aumentar sangría");
+    set_tooltip(btn_indent->children()[0].get(), "Disminuir sangría");
+    set_tooltip(btn_indent->children()[1].get(), "Aumentar sangría");
   }
   m_group_indent = btn_indent.get();
 
@@ -155,10 +155,10 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   btn_align->add_item("R");
   btn_align->add_item("J");
   if (btn_align->children().size() >= 4) {
-      set_tooltip(btn_align->children()[0].get(), "Alinear a la izquierda");
-      set_tooltip(btn_align->children()[1].get(), "Centrar");
-      set_tooltip(btn_align->children()[2].get(), "Alinear a la derecha");
-      set_tooltip(btn_align->children()[3].get(), "Justificar");
+    set_tooltip(btn_align->children()[0].get(), "Alinear a la izquierda");
+    set_tooltip(btn_align->children()[1].get(), "Centrar");
+    set_tooltip(btn_align->children()[2].get(), "Alinear a la derecha");
+    set_tooltip(btn_align->children()[3].get(), "Justificar");
   }
   m_group_alignment = btn_align.get();
 
@@ -169,6 +169,35 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   para_container->add_child(std::move(para_row2));
 
   m_section_paragraph->add_widget(std::move(para_container));
+
+  m_section_insert = ribbon->add_section(tab_index, "Insert");
+
+  auto btn_image =
+      std::make_unique<horizon::ToolbarButton>("Image", "pluma-insert-image");
+  btn_image->set_size(64, 64);
+  btn_image->set_fixed_size(64);
+  m_btn_image = btn_image.get();
+  m_section_insert->add_widget(std::move(btn_image));
+
+  auto col_container_insert = std::make_unique<horizon::Widget>();
+  col_container_insert->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+  col_container_insert->set_spacing(4);
+  // col_container_insert->set_size(80, 64);
+  col_container_insert->set_fixed_size(80);
+
+  auto btn_table =
+      std::make_unique<horizon::ToolbarButton>("", "pluma-insert-table");
+  btn_table->set_fixed_size(24);
+  m_btn_table = btn_table.get();
+  col_container_insert->add_child(std::move(btn_table));
+
+  auto btn_shape =
+      std::make_unique<horizon::ToolbarButton>("", "pluma-draw-brush");
+  btn_shape->set_fixed_size(24);
+  m_btn_shape = btn_shape.get();
+  col_container_insert->add_child(std::move(btn_shape));
+
+  m_section_insert->add_widget(std::move(col_container_insert));
 }
 
 } // namespace pluma_app
