@@ -13,6 +13,7 @@ public:
   ~HomeSection() = default;
 
   horizon::Combo* combo_font_family() const { return m_combo_font_family; }
+  horizon::Combo* combo_font_size() const { return m_combo_font_size; }
 
 private:
   horizon::RibbonSection *m_section_font = nullptr;

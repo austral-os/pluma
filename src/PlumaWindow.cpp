@@ -115,6 +115,31 @@ void PlumaWindow::create_tab(const std::string &title,
           }
         }
       });
+
+  m_home_sections.back()->combo_font_size()->when_item_selected.connect(
+      [this, view_ptr = raw_view_ptr](horizon::ComboItemSelectedContext &ctx) {
+        LOG_INFO << "Font size combo selected! id: " << ctx.item.id;
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          auto selection = editor->getSelectionRange();
+          if (!selection.isCollapsed()) {
+            float size = 12.0f;
+            try {
+              size = std::stof(ctx.item.id);
+            } catch (...) {}
+            
+            editor->applyStyle(selection.getStart(), selection.getLength(),
+                               pluma::PropertyId::FontSize, size);
+            view_ptr->calculate_layout();
+            view_ptr->invalidate();
+            if (view_ptr->parent()) {
+              view_ptr->parent()->calculate_layout();
+              view_ptr->parent()->invalidate();
+            }
+            LOG_INFO << "Applied font size style!";
+          }
+        }
+      });
 }
 
 PlumaView *PlumaWindow::get_current_view() const {
