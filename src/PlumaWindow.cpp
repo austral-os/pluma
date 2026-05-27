@@ -9,8 +9,31 @@
 #include <horizon/Toolbar.hpp>
 #include <horizon/Widget.hpp>
 #include <pluma/Style/StyleProperties.hpp>
+#include <horizon/Vault.hpp>
+#include <horizon/GraphicsContext.hpp>
 
 namespace pluma_app {
+
+class ColorPaletteItem : public horizon::Widget {
+public:
+  ColorPaletteItem(horizon::Color c) : m_color(c) {
+    set_focusable(true);
+  }
+
+  void draw(horizon::GraphicsContext &ctx) override {
+    ctx.setColor(m_color);
+    ctx.fillRect(x(), y(), width(), height());
+  }
+
+  int preferred_width() const override { return 24; }
+  int preferred_height() const override { return 24; }
+  int preferred_height(int /*width*/) const override { return 24; }
+
+  horizon::Color color() const { return m_color; }
+
+private:
+  horizon::Color m_color;
+};
 
 PlumaWindow::PlumaWindow() : horizon::ApplicationWindow("Pluma") {
   set_title("Pluma Rich Text Editor");
@@ -242,6 +265,72 @@ void PlumaWindow::create_tab(const std::string &title,
               view_ptr->parent()->invalidate();
             }
           }
+        }
+      });
+
+  m_home_sections.back()->group_colors()->when_button_clicked.connect(
+      [this, view_ptr = raw_view_ptr](horizon::GroupButtonClickEvent &ctx) {
+        if (ctx.button_index == 0) { // Text Color
+          auto vault = std::make_unique<horizon::Vault>();
+          auto content = std::make_unique<horizon::Widget>();
+          content->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+          content->set_spacing(8);
+
+          auto title = std::make_unique<horizon::Label>("Text Color");
+          content->add_child(std::move(title));
+
+          auto grid = std::make_unique<horizon::Widget>();
+          grid->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+          grid->set_spacing(4);
+
+          std::vector<horizon::Color> base_colors = {
+              {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}, {0.8f, 0.8f, 0.8f, 1.0f}, {0.1f, 0.2f, 0.4f, 1.0f},
+              {0.2f, 0.4f, 0.8f, 1.0f}, {0.9f, 0.4f, 0.1f, 1.0f}, {0.6f, 0.6f, 0.6f, 1.0f}, {0.9f, 0.7f, 0.1f, 1.0f},
+              {0.3f, 0.6f, 0.9f, 1.0f}, {0.4f, 0.7f, 0.3f, 1.0f}
+          };
+
+          for (size_t row_idx = 0; row_idx < 6; ++row_idx) {
+              auto row = std::make_unique<horizon::Widget>();
+              row->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
+              row->set_spacing(2);
+
+              for (size_t col_idx = 0; col_idx < 10; ++col_idx) {
+                  horizon::Color c = base_colors[col_idx];
+                  if (row_idx > 0) {
+                      float factor = 1.0f - (row_idx * 0.15f); // darken
+                      if (col_idx == 0 || col_idx == 2) { // lighten for black/dark colors
+                          factor = 1.0f - ((5 - row_idx) * 0.15f);
+                      }
+                      c.r *= factor; c.g *= factor; c.b *= factor;
+                  }
+                  
+                  auto btn = std::make_unique<ColorPaletteItem>(c);
+                  btn->when_mouse_press.connect([this, view_ptr, c](auto&) {
+                      if (view_ptr && view_ptr->editor()) {
+                          auto editor = view_ptr->editor();
+                          auto selection = editor->getSelectionRange();
+                          if (!selection.isCollapsed()) {
+                              uint32_t argb = (255 << 24) | ((int)(c.r * 255) << 16) | ((int)(c.g * 255) << 8) | ((int)(c.b * 255));
+                              editor->applyStyle(selection.getStart(), selection.getLength(), pluma::PropertyId::TextColor, argb);
+                              view_ptr->calculate_layout();
+                              view_ptr->invalidate();
+                              if (view_ptr->parent()) {
+                                  view_ptr->parent()->calculate_layout();
+                                  view_ptr->parent()->invalidate();
+                              }
+                          }
+                      }
+                      application()->close_vault();
+                  });
+                  row->add_child(std::move(btn));
+              }
+              grid->add_child(std::move(row));
+          }
+
+          content->add_child(std::move(grid));
+          content->set_size(280, 200);
+          vault->set_content(std::move(content));
+          application()->show_vault(vault.release(), -1, -1, 0, m_home_sections.back()->group_colors());
         }
       });
 }

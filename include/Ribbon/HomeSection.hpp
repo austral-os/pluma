@@ -16,6 +16,7 @@ public:
   horizon::Combo* combo_font_size() const { return m_combo_font_size; }
   horizon::GroupButton* group_font_size() const { return m_group_font_size; }
   horizon::GroupButton* group_styles() const { return m_group_styles; }
+  horizon::GroupButton* group_colors() const { return m_group_colors; }
 
 private:
   horizon::RibbonSection *m_section_font = nullptr;
