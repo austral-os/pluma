@@ -24,6 +24,7 @@ private:
     void new_file();
     PlumaView* get_current_view() const;
     void update_status_bar();
+    void update_ribbon_state(PlumaView* view, HomeSection* home_sec);
 
     horizon::TabCollection* m_tabs = nullptr;
     std::vector<std::unique_ptr<HomeSection>> m_home_sections;

@@ -63,7 +63,12 @@ PlumaWindow::PlumaWindow() : horizon::ApplicationWindow("Pluma") {
   m_tabs->when_add_tab_clicked.connect(
       [this](horizon::EventContext &) { new_file(); });
 
-  m_tabs->when_tab_selected.connect([this](int) { this->update_status_bar(); });
+  m_tabs->when_tab_selected.connect([this](int index) { 
+    this->update_status_bar(); 
+    if (index >= 0 && index < (int)this->m_home_sections.size()) {
+      this->update_ribbon_state(this->get_current_view(), this->m_home_sections[index].get());
+    }
+  });
 
   tabs->set_position_type(horizon::FILL);
 
@@ -102,10 +107,12 @@ void PlumaWindow::create_tab(const std::string &title,
     pluma_view->set_current_path(path);
   }
 
+  auto raw_home_ptr = m_home_sections.back().get();
   pluma_view->editor()->setCursorStateCallback(
-      [this, view_ptr = raw_view_ptr](const pluma::CursorState &) {
+      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr](const pluma::CursorState &) {
         if (this->get_current_view() == view_ptr) {
           this->update_status_bar();
+          this->update_ribbon_state(view_ptr, home_ptr);
         }
       });
 
@@ -514,6 +521,30 @@ void PlumaWindow::update_status_bar() {
   snprintf(buf, sizeof(buf), "Ln %d, Col %d | Total: %d", line, col,
            total_lines);
   set_status_text(buf);
+}
+
+void PlumaWindow::update_ribbon_state(PlumaView* view, HomeSection* home_sec) {
+    if (!view || !view->editor() || !home_sec) return;
+    
+    auto editor = view->editor();
+    uint32_t offset = editor->getCursorOffset();
+    if (!editor->getSelectionRange().isCollapsed()) {
+        offset = editor->getSelectionRange().getStart();
+    }
+    
+    pluma::PropertyBag style = editor->getFormatRegistry().getStyleAt(offset);
+    
+    if (auto ff = style.get(pluma::PropertyId::FontFamily)) {
+        std::string family = std::get<std::string>(*ff);
+        home_sec->combo_font_family()->set_selected_item_by_id(family);
+    }
+    
+    if (auto fs = style.get(pluma::PropertyId::FontSize)) {
+        float size = std::get<float>(*fs);
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%.0f", size);
+        home_sec->combo_font_size()->set_selected_item_by_id(buf);
+    }
 }
 
 } // namespace pluma_app
