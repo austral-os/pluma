@@ -327,42 +327,87 @@ void PlumaWindow::create_tab(const std::string &title,
 
           std::string para_text = text.substr(para_start, para_end - para_start);
           
-          float left = 0.0f, right = 0.0f, first = 0.0f;
-          size_t end_tag = std::string::npos;
+          size_t search_start = 0;
+          if (para_text.length() >= 8 && para_text.substr(0, 8) == "|INDENT:") {
+              size_t end_tag = para_text.find("|", 8);
+              if (end_tag != std::string::npos) search_start = end_tag + 1;
+          }
           
-          if (para_text.substr(0, 8) == "|INDENT:") {
-              end_tag = para_text.find("|", 8);
-              if (end_tag != std::string::npos) {
-                  std::string content = para_text.substr(8, end_tag - 8);
-                  size_t c1 = content.find(":");
-                  size_t c2 = (c1 != std::string::npos) ? content.find(":", c1 + 1) : std::string::npos;
-                  try {
-                      if (c1 != std::string::npos && c2 != std::string::npos) {
-                          left = std::stof(content.substr(0, c1));
-                          right = std::stof(content.substr(c1 + 1, c2 - c1 - 1));
-                          first = std::stof(content.substr(c2 + 1));
-                      }
-                  } catch(...) {}
+          bool has_list = false;
+          std::string list_prefix = "";
+          int list_level = 1;
+          std::string list_suffix = "";
+          size_t list_end = std::string::npos;
+          
+          if (para_text.length() >= search_start + 4 && 
+              (para_text.substr(search_start, 4) == "|UL:" || para_text.substr(search_start, 4) == "|OL:")) {
+              has_list = true;
+              list_end = para_text.find("|", search_start + 4);
+              if (list_end != std::string::npos) {
+                  list_prefix = para_text.substr(search_start, 4);
+                  std::string content = para_text.substr(search_start + 4, list_end - (search_start + 4));
+                  size_t colon = content.find(":");
+                  if (colon != std::string::npos) {
+                      try { list_level = std::stoi(content.substr(0, colon)); } catch(...) {}
+                      list_suffix = content.substr(colon);
+                  } else {
+                      try { list_level = std::stoi(content); } catch(...) {}
+                  }
               }
           }
           
-          if (ctx.button_index == 0) { // Decrease
-              left -= 0.5f;
-              if (left < 0.0f) left = 0.0f;
-          } else if (ctx.button_index == 1) { // Increase
-              left += 0.5f;
-          }
-
-          if (end_tag != std::string::npos) {
-              editor->setSelection(para_start, para_start + end_tag + 1);
-              editor->deleteSelection();
-          }
-          
-          if (left > 0.01f || right > 0.01f || first > 0.01f) {
-              char buf[128];
-              snprintf(buf, sizeof(buf), "|INDENT:%.2f:%.2f:%.2f|", left, right, first);
-              editor->setSelection(para_start, para_start);
-              editor->insertTextAtCursor(buf);
+          if (has_list) {
+              if (ctx.button_index == 0) list_level--;
+              else if (ctx.button_index == 1) list_level++;
+              
+              if (list_level < 1) {
+                  editor->setSelection(para_start + search_start, para_start + list_end + 1);
+                  editor->deleteSelection();
+              } else {
+                  std::string new_tag = list_prefix + std::to_string(list_level) + list_suffix + "|";
+                  editor->setSelection(para_start + search_start, para_start + list_end + 1);
+                  editor->deleteSelection();
+                  editor->setSelection(para_start + search_start, para_start + search_start);
+                  editor->insertTextAtCursor(new_tag);
+              }
+          } else {
+              float left = 0.0f, right = 0.0f, first = 0.0f;
+              size_t end_tag = std::string::npos;
+              
+              if (para_text.substr(0, 8) == "|INDENT:") {
+                  end_tag = para_text.find("|", 8);
+                  if (end_tag != std::string::npos) {
+                      std::string content = para_text.substr(8, end_tag - 8);
+                      size_t c1 = content.find(":");
+                      size_t c2 = (c1 != std::string::npos) ? content.find(":", c1 + 1) : std::string::npos;
+                      try {
+                          if (c1 != std::string::npos && c2 != std::string::npos) {
+                              left = std::stof(content.substr(0, c1));
+                              right = std::stof(content.substr(c1 + 1, c2 - c1 - 1));
+                              first = std::stof(content.substr(c2 + 1));
+                          }
+                      } catch(...) {}
+                  }
+              }
+              
+              if (ctx.button_index == 0) { // Decrease
+                  left -= 0.5f;
+                  if (left < 0.0f) left = 0.0f;
+              } else if (ctx.button_index == 1) { // Increase
+                  left += 0.5f;
+              }
+              
+              if (end_tag != std::string::npos) {
+                  editor->setSelection(para_start, para_start + end_tag + 1);
+                  editor->deleteSelection();
+              }
+              
+              if (left > 0.01f || right > 0.01f || first > 0.01f) {
+                  char buf[128];
+                  snprintf(buf, sizeof(buf), "|INDENT:%.2f:%.2f:%.2f|", left, right, first);
+                  editor->setSelection(para_start, para_start);
+                  editor->insertTextAtCursor(buf);
+              }
           }
           
           view_ptr->calculate_layout();
