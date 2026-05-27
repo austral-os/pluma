@@ -1,4 +1,5 @@
 #include "Ribbon/HomeSection.hpp"
+#include "utils/FontUtils.hpp"
 
 #include <Spacer.hpp>
 #include <horizon/Widget.hpp>
@@ -18,10 +19,19 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   row1->set_spacing(4);
 
   auto combo_family = std::make_unique<horizon::Combo>();
-  combo_family->add_item("arial", "Arial");
-  combo_family->add_item("times", "Times New Roman");
-  combo_family->add_item("courier", "Courier New");
-  combo_family->set_selected_item_index(0);
+  auto fonts = utils::FontUtils::get_installed_fonts();
+  int idx = 0;
+  int selected_idx = 0;
+  for (const auto &f : fonts) {
+    combo_family->add_item(f, f);
+    if (f == "Arial" || f == "Liberation Sans" ||
+        f == "Ubuntu") { // Try to find a reasonable default
+      selected_idx = idx;
+    }
+    idx++;
+  }
+  combo_family->set_selected_item_index(selected_idx);
+
   m_combo_font_family = combo_family.get();
 
   auto combo_size = std::make_unique<horizon::Combo>();
@@ -31,6 +41,9 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   combo_size->add_item("16", "16");
   combo_size->add_item("18", "18");
   combo_size->add_item("24", "24");
+  combo_size->add_item("36", "36");
+  combo_size->add_item("48", "48");
+  combo_size->add_item("72", "72");
   combo_size->set_selected_item_index(1);
   combo_size->set_fixed_size(80);
   m_combo_font_size = combo_size.get();
