@@ -211,6 +211,39 @@ void PlumaWindow::create_tab(const std::string &title,
           }
         }
       });
+
+  m_home_sections.back()->group_font_size()->when_button_clicked.connect(
+      [this, view_ptr = raw_view_ptr](horizon::GroupButtonClickEvent &ctx) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          auto selection = editor->getSelectionRange();
+          if (!selection.isCollapsed()) {
+            auto current_style = editor->getFormatRegistry().getStyleAt(selection.getStart());
+            
+            float current_size = 12.0f;
+            if (auto fs = current_style.get(pluma::PropertyId::FontSize)) {
+              current_size = std::get<float>(*fs);
+            }
+
+            if (ctx.button_index == 0) { // A+
+              current_size += 2.0f;
+            } else if (ctx.button_index == 1) { // A-
+              current_size -= 2.0f;
+              if (current_size < 4.0f) current_size = 4.0f; // Minimum size limit
+            }
+
+            editor->applyStyle(selection.getStart(), selection.getLength(),
+                               pluma::PropertyId::FontSize, current_size);
+
+            view_ptr->calculate_layout();
+            view_ptr->invalidate();
+            if (view_ptr->parent()) {
+              view_ptr->parent()->calculate_layout();
+              view_ptr->parent()->invalidate();
+            }
+          }
+        }
+      });
 }
 
 PlumaView *PlumaWindow::get_current_view() const {

@@ -14,6 +14,7 @@ public:
 
   horizon::Combo* combo_font_family() const { return m_combo_font_family; }
   horizon::Combo* combo_font_size() const { return m_combo_font_size; }
+  horizon::GroupButton* group_font_size() const { return m_group_font_size; }
   horizon::GroupButton* group_styles() const { return m_group_styles; }
 
 private:
