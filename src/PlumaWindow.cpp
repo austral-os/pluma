@@ -251,6 +251,130 @@ void PlumaWindow::create_tab(const std::string &title,
         }
       });
 
+  m_home_sections.back()->group_lists()->when_button_clicked.connect(
+      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr](horizon::GroupButtonClickEvent &ctx) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          auto selection = editor->getSelectionRange();
+          uint32_t para_start = selection.getStart();
+          std::string text = editor->getText();
+          while (para_start > 0 && text[para_start - 1] != '\n') para_start--;
+          
+          uint32_t para_end = selection.getEnd();
+          while (para_end < text.length() && text[para_end] != '\n') para_end++;
+
+          std::string para_text = text.substr(para_start, para_end - para_start);
+          
+          size_t search_start = 0;
+          if (para_text.substr(0, 8) == "|INDENT:") {
+              size_t end_tag = para_text.find("|", 8);
+              if (end_tag != std::string::npos) {
+                  search_start = end_tag + 1;
+              }
+          }
+          
+          size_t end_list_tag = std::string::npos;
+          if (para_text.substr(search_start, 4) == "|UL:" || para_text.substr(search_start, 4) == "|OL:") {
+              end_list_tag = para_text.find("|", search_start + 4);
+          }
+          
+          std::string new_tag = "";
+          if (ctx.button_index == 0) { // Bullet
+              if (para_text.substr(search_start, 4) == "|UL:") {
+                  // toggle off
+              } else {
+                  new_tag = "|UL:1:disc|";
+              }
+          } else if (ctx.button_index == 1) { // Number
+              if (para_text.substr(search_start, 4) == "|OL:") {
+                  // toggle off
+              } else {
+                  new_tag = "|OL:1:1|";
+              }
+          }
+
+          if (end_list_tag != std::string::npos) {
+              editor->setSelection(para_start + search_start, para_start + end_list_tag + 1);
+              editor->deleteSelection();
+          }
+          
+          if (!new_tag.empty()) {
+              editor->setSelection(para_start + search_start, para_start + search_start);
+              editor->insertTextAtCursor(new_tag);
+          }
+          
+          view_ptr->calculate_layout();
+          view_ptr->invalidate();
+          if (view_ptr->parent()) {
+            view_ptr->parent()->calculate_layout();
+            view_ptr->parent()->invalidate();
+          }
+          this->update_ribbon_state(view_ptr, home_ptr);
+        }
+      });
+
+  m_home_sections.back()->group_indent()->when_button_clicked.connect(
+      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr](horizon::GroupButtonClickEvent &ctx) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          auto selection = editor->getSelectionRange();
+          uint32_t para_start = selection.getStart();
+          std::string text = editor->getText();
+          while (para_start > 0 && text[para_start - 1] != '\n') para_start--;
+          
+          uint32_t para_end = selection.getEnd();
+          while (para_end < text.length() && text[para_end] != '\n') para_end++;
+
+          std::string para_text = text.substr(para_start, para_end - para_start);
+          
+          float left = 0.0f, right = 0.0f, first = 0.0f;
+          size_t end_tag = std::string::npos;
+          
+          if (para_text.substr(0, 8) == "|INDENT:") {
+              end_tag = para_text.find("|", 8);
+              if (end_tag != std::string::npos) {
+                  std::string content = para_text.substr(8, end_tag - 8);
+                  size_t c1 = content.find(":");
+                  size_t c2 = (c1 != std::string::npos) ? content.find(":", c1 + 1) : std::string::npos;
+                  try {
+                      if (c1 != std::string::npos && c2 != std::string::npos) {
+                          left = std::stof(content.substr(0, c1));
+                          right = std::stof(content.substr(c1 + 1, c2 - c1 - 1));
+                          first = std::stof(content.substr(c2 + 1));
+                      }
+                  } catch(...) {}
+              }
+          }
+          
+          if (ctx.button_index == 0) { // Decrease
+              left -= 0.5f;
+              if (left < 0.0f) left = 0.0f;
+          } else if (ctx.button_index == 1) { // Increase
+              left += 0.5f;
+          }
+
+          if (end_tag != std::string::npos) {
+              editor->setSelection(para_start, para_start + end_tag + 1);
+              editor->deleteSelection();
+          }
+          
+          if (left > 0.01f || right > 0.01f || first > 0.01f) {
+              char buf[128];
+              snprintf(buf, sizeof(buf), "|INDENT:%.2f:%.2f:%.2f|", left, right, first);
+              editor->setSelection(para_start, para_start);
+              editor->insertTextAtCursor(buf);
+          }
+          
+          view_ptr->calculate_layout();
+          view_ptr->invalidate();
+          if (view_ptr->parent()) {
+            view_ptr->parent()->calculate_layout();
+            view_ptr->parent()->invalidate();
+          }
+          this->update_ribbon_state(view_ptr, home_ptr);
+        }
+      });
+
   m_home_sections.back()->group_alignment()->when_button_clicked.connect(
       [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr](horizon::GroupButtonClickEvent &ctx) {
         if (view_ptr && view_ptr->editor()) {
@@ -622,6 +746,26 @@ void PlumaWindow::update_ribbon_state(PlumaView* view, HomeSection* home_sec) {
     home_sec->group_alignment()->set_item_active(1, align == pluma::TextAlign::Center);
     home_sec->group_alignment()->set_item_active(2, align == pluma::TextAlign::Right);
     home_sec->group_alignment()->set_item_active(3, align == pluma::TextAlign::Justify);
+
+    uint32_t para_start = offset;
+    std::string text = editor->getText();
+    while (para_start > 0 && text[para_start - 1] != '\n') para_start--;
+    
+    uint32_t para_end = offset;
+    while (para_end < text.length() && text[para_end] != '\n') para_end++;
+
+    std::string para_text = text.substr(para_start, para_end - para_start);
+    size_t search_start = 0;
+    if (para_text.substr(0, 8) == "|INDENT:") {
+        size_t end_tag = para_text.find("|", 8);
+        if (end_tag != std::string::npos) search_start = end_tag + 1;
+    }
+    
+    bool is_ul = (para_text.substr(search_start, 4) == "|UL:");
+    bool is_ol = (para_text.substr(search_start, 4) == "|OL:");
+    
+    home_sec->group_lists()->set_item_active(0, is_ul);
+    home_sec->group_lists()->set_item_active(1, is_ol);
 }
 
 } // namespace pluma_app

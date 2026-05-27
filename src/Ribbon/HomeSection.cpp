@@ -121,7 +121,7 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   para_row1->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
   para_row1->set_spacing(4);
 
-  auto btn_lists = std::make_unique<horizon::GroupButton>();
+  auto btn_lists = std::make_unique<MultiToggleGroupButton>();
   btn_lists->set_fixed_size(80);
   btn_lists->add_item("-");
   btn_lists->add_item("1.");
