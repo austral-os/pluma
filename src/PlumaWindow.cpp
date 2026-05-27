@@ -11,6 +11,7 @@
 #include <horizon/Vault.hpp>
 #include <horizon/Widget.hpp>
 #include <pluma/Style/StyleProperties.hpp>
+#include <horizon/dialogs/FileDialog.hpp>
 
 namespace pluma_app {
 
@@ -248,6 +249,32 @@ void PlumaWindow::create_tab(const std::string &title,
             }
             this->update_ribbon_state(view_ptr, home_ptr);
           }
+        }
+      });
+
+  m_home_sections.back()->btn_image()->when_mouse_press.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &ctx) {
+        LOG_INFO << "Image button pressed!";
+        if (view_ptr && view_ptr->editor()) {
+          m_file_dialog = std::make_unique<horizon::FileDialog>(horizon::FileDialogMode::Open, "Insert Image");
+          m_file_dialog->when_accepted.connect([this, view_ptr](horizon::FileDialogAcceptedContext& ctx_acc) {
+            auto editor = view_ptr->editor();
+            std::string img_tag = "\n|IMAGE:" + ctx_acc.selected_path + "|\n";
+            editor->insertTextAtCursor(img_tag);
+            view_ptr->calculate_layout();
+            view_ptr->invalidate();
+            if (view_ptr->parent()) {
+              view_ptr->parent()->calculate_layout();
+              view_ptr->parent()->invalidate();
+            }
+            m_file_dialog->quit();
+          });
+          m_file_dialog->when_cancelled.connect([this](horizon::FileDialogCancelledContext&) {
+            m_file_dialog->quit();
+          });
+          
+          m_file_dialog->run();
+          m_file_dialog.reset();
         }
       });
 

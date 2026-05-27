@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <horizon/dialogs/FileDialog.hpp>
 
 namespace pluma_app {
 
@@ -28,6 +29,7 @@ private:
 
     horizon::TabCollection* m_tabs = nullptr;
     std::vector<std::unique_ptr<HomeSection>> m_home_sections;
+    std::unique_ptr<horizon::FileDialog> m_file_dialog;
 };
 
 } // namespace pluma_app
