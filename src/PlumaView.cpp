@@ -1,6 +1,7 @@
 #include "PlumaView.hpp"
 #include <horizon/GraphicsContext.hpp>
 #include <pluma/Plugins/PlumaArchiveExporter.hpp>
+#include <pluma/Plugins/PdfExporter.hpp>
 #include <pluma/Plugins/PlumaArchiveImporter.hpp>
 #include <pluma/Render/CairoRenderer.hpp>
 #include <pluma/Typography/DummyTypography.hpp>
@@ -312,6 +313,12 @@ bool PlumaView::load_document(const std::string &path) {
 bool PlumaView::save_document(const std::string &path) {
   if (!m_editor)
     return false;
+    
+  if (path.length() >= 4 && path.substr(path.length() - 4) == ".pdf") {
+    pluma::plugins::PdfExporter exporter;
+    return exporter.exportToFile(path, *m_editor);
+  }
+  
   pluma::plugins::PlumaArchiveExporter exporter;
   return exporter.exportToFile(path, *m_editor);
 }
