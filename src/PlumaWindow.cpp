@@ -8,6 +8,7 @@
 #include <horizon/ScrollArea.hpp>
 #include <horizon/Toolbar.hpp>
 #include <horizon/Widget.hpp>
+#include <pluma/Style/StyleProperties.hpp>
 
 namespace pluma_app {
 
@@ -73,13 +74,15 @@ void PlumaWindow::create_tab(const std::string &title,
   auto scroll_area = std::make_unique<horizon::ScrollArea>();
   auto pluma_view = std::make_unique<PlumaView>();
 
+  PlumaView* raw_view_ptr = pluma_view.get();
+
   if (!path.empty()) {
     pluma_view->load_document(path);
     pluma_view->set_current_path(path);
   }
 
   pluma_view->editor()->setCursorStateCallback(
-      [this, view_ptr = pluma_view.get()](const pluma::CursorState &) {
+      [this, view_ptr = raw_view_ptr](const pluma::CursorState &) {
         if (this->get_current_view() == view_ptr) {
           this->update_status_bar();
         }
@@ -90,6 +93,28 @@ void PlumaWindow::create_tab(const std::string &title,
 
   m_tabs->add_tab(title, std::move(tab_container));
   m_tabs->set_current_tab(m_tabs->tab_count() - 1);
+
+  m_home_sections.back()->combo_font_family()->when_item_selected.connect(
+      [this, view_ptr = raw_view_ptr](horizon::ComboItemSelectedContext &ctx) {
+        LOG_INFO << "Combo item selected! id: " << ctx.item.id;
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          auto selection = editor->getSelectionRange();
+          LOG_INFO << "Selection start: " << selection.getStart() 
+                   << " length: " << selection.getLength();
+          if (!selection.isCollapsed()) {
+            editor->applyStyle(selection.getStart(), selection.getLength(),
+                               pluma::PropertyId::FontFamily, ctx.item.id);
+            view_ptr->calculate_layout();
+            view_ptr->invalidate();
+            if (view_ptr->parent()) {
+              view_ptr->parent()->calculate_layout();
+              view_ptr->parent()->invalidate();
+            }
+            LOG_INFO << "Applied font style!";
+          }
+        }
+      });
 }
 
 PlumaView *PlumaWindow::get_current_view() const {
@@ -98,8 +123,12 @@ PlumaView *PlumaWindow::get_current_view() const {
   auto *tab_container = dynamic_cast<horizon::Widget *>(m_tabs->current_tab_body());
   if (tab_container && tab_container->children().size() >= 2) {
     auto *scroll = dynamic_cast<horizon::ScrollArea *>(tab_container->children()[1].get());
-    if (scroll && !scroll->children().empty()) {
-      return dynamic_cast<PlumaView *>(scroll->children()[0].get());
+    if (scroll) {
+      for (const auto& child : scroll->children()) {
+        if (auto* view = dynamic_cast<PlumaView*>(child.get())) {
+          return view;
+        }
+      }
     }
   }
   return nullptr;

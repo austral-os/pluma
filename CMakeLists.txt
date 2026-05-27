@@ -15,6 +15,7 @@ add_executable(pluma-app ${SOURCES})
 
 target_include_directories(pluma-app PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib-pluma/include
     ${CAIRO_INCLUDE_DIRS}
     ${FONTCONFIG_INCLUDE_DIRS}
 )

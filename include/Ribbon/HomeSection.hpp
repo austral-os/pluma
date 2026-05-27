@@ -12,6 +12,8 @@ public:
   HomeSection(horizon::RibbonToolbar *ribbon, int tab_index);
   ~HomeSection() = default;
 
+  horizon::Combo* combo_font_family() const { return m_combo_font_family; }
+
 private:
   horizon::RibbonSection *m_section_font = nullptr;
   horizon::Combo *m_combo_font_family = nullptr;

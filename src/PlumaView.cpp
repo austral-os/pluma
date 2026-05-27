@@ -28,6 +28,9 @@ public:
   shapeText(std::string_view text,
             const std::shared_ptr<pluma::IFont> &font) override {
     float size_pt = font->getDescriptor().size_pt;
+    std::string family = font->getDescriptor().family;
+    if (family.empty()) family = "sans-serif";
+    cairo_select_font_face(cr_, family.c_str(), CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(cr_, size_pt);
 
     pluma::ShapedTextRun run;
