@@ -6,6 +6,7 @@
 #include "Ribbon/HomeSection.hpp"
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace pluma_app {
 
@@ -25,7 +26,7 @@ private:
     void update_status_bar();
 
     horizon::TabCollection* m_tabs = nullptr;
-    std::unique_ptr<HomeSection> m_section_home;
+    std::vector<std::unique_ptr<HomeSection>> m_home_sections;
 };
 
 } // namespace pluma_app

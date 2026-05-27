@@ -30,6 +30,9 @@ PlumaWindow::PlumaWindow() : horizon::ApplicationWindow("Pluma") {
 
   m_tabs->when_tab_close_requested.connect([this](int index) {
     m_tabs->remove_tab(index);
+    if (index >= 0 && index < m_home_sections.size()) {
+      m_home_sections.erase(m_home_sections.begin() + index);
+    }
     if (m_tabs->tab_count() == 0) {
       new_file();
     }
@@ -38,25 +41,11 @@ PlumaWindow::PlumaWindow() : horizon::ApplicationWindow("Pluma") {
   m_tabs->when_add_tab_clicked.connect(
       [this](horizon::EventContext &) { new_file(); });
 
-  m_tabs->when_tab_selected.connect(
-      [this](int) { this->update_status_bar(); });
+  m_tabs->when_tab_selected.connect([this](int) { this->update_status_bar(); });
 
   tabs->set_position_type(horizon::FILL);
 
-  auto container = std::make_unique<horizon::Widget>();
-  container->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
-  container->set_position_type(horizon::FILL);
-
-  auto ribbon = std::make_unique<horizon::RibbonToolbar>();
-  ribbon->set_fixed_size(130);
-
-  int t1 = ribbon->add_tab("Home");
-  m_section_home = std::make_unique<HomeSection>(ribbon.get(), t1);
-
-  container->add_child(std::move(ribbon));
-  container->add_child(std::move(tabs));
-
-  set_content(std::move(container));
+  set_content(std::move(tabs));
 
   setup_events();
 
@@ -68,6 +57,19 @@ void PlumaWindow::new_file() { create_tab("Sin título"); }
 
 void PlumaWindow::create_tab(const std::string &title,
                              const std::string &path) {
+  auto tab_container = std::make_unique<horizon::Widget>();
+  tab_container->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+  tab_container->set_position_type(horizon::FILL);
+
+  auto ribbon = std::make_unique<horizon::RibbonToolbar>();
+  ribbon->set_fixed_size(135);
+
+  int t1 = ribbon->add_tab("Home");
+  auto home_sec = std::make_unique<HomeSection>(ribbon.get(), t1);
+  m_home_sections.push_back(std::move(home_sec));
+
+  tab_container->add_child(std::move(ribbon));
+
   auto scroll_area = std::make_unique<horizon::ScrollArea>();
   auto pluma_view = std::make_unique<PlumaView>();
 
@@ -84,17 +86,21 @@ void PlumaWindow::create_tab(const std::string &title,
       });
 
   scroll_area->set_content(std::move(pluma_view));
-  m_tabs->add_tab(title, std::move(scroll_area));
+  tab_container->add_child(std::move(scroll_area));
+
+  m_tabs->add_tab(title, std::move(tab_container));
   m_tabs->set_current_tab(m_tabs->tab_count() - 1);
 }
 
 PlumaView *PlumaWindow::get_current_view() const {
   if (!m_tabs)
     return nullptr;
-  auto *scroll =
-      dynamic_cast<horizon::ScrollArea *>(m_tabs->current_tab_body());
-  if (scroll && !scroll->children().empty()) {
-    return dynamic_cast<PlumaView *>(scroll->children()[0].get());
+  auto *tab_container = dynamic_cast<horizon::Widget *>(m_tabs->current_tab_body());
+  if (tab_container && tab_container->children().size() >= 2) {
+    auto *scroll = dynamic_cast<horizon::ScrollArea *>(tab_container->children()[1].get());
+    if (scroll && !scroll->children().empty()) {
+      return dynamic_cast<PlumaView *>(scroll->children()[0].get());
+    }
   }
   return nullptr;
 }
