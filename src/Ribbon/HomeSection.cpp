@@ -3,6 +3,7 @@
 
 #include <Spacer.hpp>
 #include <horizon/Widget.hpp>
+#include <horizon/Notification.hpp>
 
 namespace pluma_app {
 
@@ -48,9 +49,19 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   combo_size->set_fixed_size(80);
   m_combo_font_size = combo_size.get();
 
+  auto set_tooltip = [](horizon::Widget* w, const std::string& msg) {
+      auto t = std::make_unique<horizon::Notification>();
+      t->set_message(msg);
+      w->set_tooltip(std::move(t));
+  };
+
   auto group_btn = std::make_unique<horizon::GroupButton>();
   group_btn->add_item("A+");
   group_btn->add_item("A-");
+  if (group_btn->children().size() >= 2) {
+      set_tooltip(group_btn->children()[0].get(), "Aumentar tamaño de fuente");
+      set_tooltip(group_btn->children()[1].get(), "Disminuir tamaño de fuente");
+  }
   group_btn->set_fixed_size(80);
   m_group_font_size = group_btn.get();
 
@@ -69,12 +80,23 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   btn_styles->add_item("U");
   btn_styles->add_item("x²");
   btn_styles->add_item("x₂");
+  if (btn_styles->children().size() >= 5) {
+      set_tooltip(btn_styles->children()[0].get(), "Negrita");
+      set_tooltip(btn_styles->children()[1].get(), "Cursiva");
+      set_tooltip(btn_styles->children()[2].get(), "Subrayado");
+      set_tooltip(btn_styles->children()[3].get(), "Superíndice");
+      set_tooltip(btn_styles->children()[4].get(), "Subíndice");
+  }
   m_group_styles = btn_styles.get();
 
   auto btn_colors = std::make_unique<horizon::GroupButton>();
   btn_colors->set_fixed_size(80);
   btn_colors->add_item("A_");
   btn_colors->add_item("ab");
+  if (btn_colors->children().size() >= 2) {
+      set_tooltip(btn_colors->children()[0].get(), "Color de texto");
+      set_tooltip(btn_colors->children()[1].get(), "Color de fondo");
+  }
   m_group_colors = btn_colors.get();
 
   row2->add_child(std::move(btn_styles));
