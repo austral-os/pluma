@@ -4,6 +4,7 @@
 #include <horizon/Combo.hpp>
 #include <horizon/GroupButton.hpp>
 #include <horizon/Label.hpp>
+#include "MultiToggleGroupButton.hpp"
 
 namespace pluma_app {
 
@@ -15,7 +16,7 @@ public:
   horizon::Combo* combo_font_family() const { return m_combo_font_family; }
   horizon::Combo* combo_font_size() const { return m_combo_font_size; }
   horizon::GroupButton* group_font_size() const { return m_group_font_size; }
-  horizon::GroupButton* group_styles() const { return m_group_styles; }
+  MultiToggleGroupButton* group_styles() const { return m_group_styles; }
   horizon::GroupButton* group_colors() const { return m_group_colors; }
 
 private:
@@ -23,7 +24,7 @@ private:
   horizon::Combo *m_combo_font_family = nullptr;
   horizon::Combo *m_combo_font_size = nullptr;
   horizon::GroupButton *m_group_font_size = nullptr;
-  horizon::GroupButton *m_group_styles = nullptr;
+  MultiToggleGroupButton *m_group_styles = nullptr;
   horizon::GroupButton *m_group_colors = nullptr;
 };
 

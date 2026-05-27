@@ -171,7 +171,7 @@ void PlumaWindow::create_tab(const std::string &title,
       });
 
   m_home_sections.back()->group_styles()->when_button_clicked.connect(
-      [this, view_ptr = raw_view_ptr](horizon::GroupButtonClickEvent &ctx) {
+      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr](horizon::GroupButtonClickEvent &ctx) {
         if (view_ptr && view_ptr->editor()) {
           auto editor = view_ptr->editor();
           auto selection = editor->getSelectionRange();
@@ -246,6 +246,7 @@ void PlumaWindow::create_tab(const std::string &title,
               view_ptr->parent()->calculate_layout();
               view_ptr->parent()->invalidate();
             }
+            this->update_ribbon_state(view_ptr, home_ptr);
           }
         }
       });
@@ -545,6 +546,35 @@ void PlumaWindow::update_ribbon_state(PlumaView* view, HomeSection* home_sec) {
         snprintf(buf, sizeof(buf), "%.0f", size);
         home_sec->combo_font_size()->set_selected_item_by_id(buf);
     }
+    
+    bool is_bold = false;
+    if (auto fw = style.get(pluma::PropertyId::FontWeight)) {
+        is_bold = std::get<uint16_t>(*fw) >= 700;
+    }
+    std::cout << "[PlumaWindow] update_ribbon_state is_bold=" << is_bold << std::endl;
+    home_sec->group_styles()->set_item_active(0, is_bold);
+
+    bool is_italic = false;
+    if (auto it = style.get(pluma::PropertyId::FontStyleItalic)) {
+        is_italic = std::get<bool>(*it);
+    }
+    home_sec->group_styles()->set_item_active(1, is_italic);
+
+    bool is_underline = false;
+    if (auto td = style.get(pluma::PropertyId::Decoration)) {
+        is_underline = std::get<pluma::TextDecoration>(*td) == pluma::TextDecoration::Underline;
+    }
+    home_sec->group_styles()->set_item_active(2, is_underline);
+
+    bool is_super = false;
+    bool is_sub = false;
+    if (auto va = style.get(pluma::PropertyId::VerticalAlignment)) {
+        auto val = std::get<pluma::VerticalAlign>(*va);
+        is_super = (val == pluma::VerticalAlign::Superscript);
+        is_sub = (val == pluma::VerticalAlign::Subscript);
+    }
+    home_sec->group_styles()->set_item_active(3, is_super);
+    home_sec->group_styles()->set_item_active(4, is_sub);
 }
 
 } // namespace pluma_app
