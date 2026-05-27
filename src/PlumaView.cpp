@@ -316,4 +316,65 @@ bool PlumaView::save_document(const std::string &path) {
   return exporter.exportToFile(path, *m_editor);
 }
 
+bool PlumaView::can_perform(horizon::ClipboardAction action) const {
+    if (!m_editor) return false;
+    switch (action) {
+        case horizon::ClipboardAction::Copy:
+        case horizon::ClipboardAction::Cut:
+            return !m_editor->getSelectionRange().isCollapsed();
+        case horizon::ClipboardAction::Paste:
+            return true;
+    }
+    return false;
+}
+
+void PlumaView::perform(horizon::ClipboardAction action) {
+    if (!m_editor) return;
+    
+    switch (action) {
+        case horizon::ClipboardAction::Copy:
+            m_clipboard_buffer = m_editor->getSelectedText();
+            if (application()) application()->set_clipboard_owner(this);
+            break;
+        case horizon::ClipboardAction::Cut:
+            m_clipboard_buffer = m_editor->getSelectedText();
+            if (application()) application()->set_clipboard_owner(this);
+            m_editor->deleteSelection();
+            calculate_layout();
+            invalidate();
+            if (parent()) {
+                parent()->calculate_layout();
+                parent()->invalidate();
+            }
+            break;
+        case horizon::ClipboardAction::Paste:
+            if (application()) application()->request_clipboard_data(this);
+            break;
+    }
+}
+
+void PlumaView::provide_clipboard_data(const std::string &mime, horizon::DataSink &sink) {
+    if (mime == "text/plain") {
+        sink.write(std::vector<uint8_t>(m_clipboard_buffer.begin(), m_clipboard_buffer.end()));
+        sink.done();
+    } else {
+        sink.error();
+    }
+}
+
+void PlumaView::on_clipboard_data_received(const std::string &mime, const std::vector<uint8_t> &data) {
+    if (mime == "text/plain") {
+        std::string content(data.begin(), data.end());
+        if (m_editor) {
+            m_editor->pasteText(content);
+            calculate_layout();
+            invalidate();
+            if (parent()) {
+                parent()->calculate_layout();
+                parent()->invalidate();
+            }
+        }
+    }
+}
+
 } // namespace pluma_app

@@ -24,6 +24,15 @@ public:
     bool load_document(const std::string& path);
     bool save_document(const std::string& path);
 
+    // Clipboard Support
+    bool supports_clipboard() const override { return true; }
+    bool can_perform(horizon::ClipboardAction action) const override;
+    void perform(horizon::ClipboardAction action) override;
+    void provide_clipboard_data(const std::string &mime, horizon::DataSink &sink) override;
+    void on_clipboard_data_received(const std::string &mime, const std::vector<uint8_t> &data) override;
+    std::vector<std::string> provided_mime_types() const override { return {"text/plain"}; }
+    std::vector<std::string> accepted_mime_types() const override { return {"text/plain"}; }
+
     const std::string& current_path() const { return m_current_path; }
     void set_current_path(const std::string& path) { m_current_path = path; }
 
@@ -32,6 +41,7 @@ public:
 private:
     std::shared_ptr<pluma::PlumaEditor> m_editor;
     std::string m_current_path;
+    std::string m_clipboard_buffer;
 };
 
 } // namespace pluma_app
