@@ -60,6 +60,14 @@ MainToolbar::MainToolbar() : horizon::Widget() {
       application()->signal_manager.emit("file.save", ctx);
   });
 
+  m_btn_undo->when_click.connect([this](horizon::EventContext &ctx) {
+    this->when_undo_clicked.run(ctx);
+  });
+
+  m_btn_redo->when_click.connect([this](horizon::EventContext &ctx) {
+    this->when_redo_clicked.run(ctx);
+  });
+
   add_child(horizon::Spacer(5));
   add_child(std::move(btn_new));
   add_child(std::move(btn_open));

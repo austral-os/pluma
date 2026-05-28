@@ -15,6 +15,8 @@ public:
   virtual ~MainToolbar() = default;
 
   horizon::EventsManager<horizon::EventContext> when_new_clicked;
+  horizon::EventsManager<horizon::EventContext> when_undo_clicked;
+  horizon::EventsManager<horizon::EventContext> when_redo_clicked;
 
 private:
   horizon::ToolbarButton *m_btn_new = nullptr;
