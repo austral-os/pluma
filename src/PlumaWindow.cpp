@@ -34,6 +34,67 @@ private:
   horizon::Color m_color;
 };
 
+// ── Table Grid Picker ──────────────────────────────────────────────────────
+struct TableHoverState {
+  int hover_row = -1;
+  int hover_col = -1;
+};
+
+class TableGridItem : public horizon::Widget {
+public:
+  TableGridItem(int row, int col, std::shared_ptr<TableHoverState> state,
+                std::shared_ptr<std::vector<TableGridItem *>> all_cells)
+      : m_row(row), m_col(col), m_state(std::move(state)),
+        m_all_cells(std::move(all_cells)) {
+    set_focusable(true);
+
+    when_mouse_enter.connect([this](horizon::EventContext &) {
+      m_state->hover_row = m_row;
+      m_state->hover_col = m_col;
+      // Invalidate all siblings so they repaint with new highlight
+      for (auto *cell : *m_all_cells)
+        cell->invalidate();
+    });
+  }
+
+  void draw(horizon::GraphicsContext &ctx) override {
+    bool highlighted =
+        (m_row <= m_state->hover_row && m_col <= m_state->hover_col);
+
+    if (highlighted) {
+      // Highlighted cell: filled accent with border
+      horizon::Color fill{0.25f, 0.55f, 0.95f, 0.35f};
+      horizon::Color border{0.25f, 0.55f, 0.95f, 1.0f};
+      ctx.setColor(fill);
+      ctx.fillRect(x(), y(), width(), height());
+      ctx.setColor(border);
+      ctx.drawRect(x(), y(), width(), height());
+    } else {
+      // Normal cell
+      horizon::Color fill{0.5f, 0.5f, 0.5f, 0.08f};
+      horizon::Color border{0.5f, 0.5f, 0.5f, 0.4f};
+      ctx.setColor(fill);
+      ctx.fillRect(x(), y(), width(), height());
+      ctx.setColor(border);
+      ctx.drawRect(x(), y(), width(), height());
+    }
+  }
+
+  int preferred_width()  const override { return 22; }
+  int preferred_height() const override { return 22; }
+  int preferred_height(int /*w*/) const override { return 22; }
+
+  int row() const { return m_row; }
+  int col() const { return m_col; }
+
+private:
+  int m_row;
+  int m_col;
+  std::shared_ptr<TableHoverState>          m_state;
+  std::shared_ptr<std::vector<TableGridItem*>> m_all_cells;
+};
+// ── End Table Grid Picker ───────────────────────────────────────────────────
+
 PlumaWindow::PlumaWindow() : horizon::ApplicationWindow("Pluma") {
   set_title("Pluma Rich Text Editor");
   set_size(1024, 768);
@@ -277,6 +338,111 @@ void PlumaWindow::create_tab(const std::string &title,
           m_file_dialog.reset();
         }
       });
+
+  // ── Insert Table vault ──────────────────────────────────────────────────
+  m_home_sections.back()->btn_table()->when_mouse_press.connect(
+      [this, view_ptr = raw_view_ptr,
+       home_ptr = raw_home_ptr](horizon::MouseButtonEventContext &) {
+        constexpr int ROWS = 8;
+        constexpr int COLS = 10;
+
+        auto vault   = std::make_unique<horizon::Vault>();
+        auto content = std::make_unique<horizon::Widget>();
+        content->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+        content->set_spacing(6);
+
+        // Title label
+        auto title = std::make_unique<horizon::Label>("Insertar tabla");
+        title->set_fixed_size(24);
+        content->add_child(std::move(title));
+
+        // Shared hover state
+        auto hover_state = std::make_shared<TableHoverState>();
+        auto all_cells   = std::make_shared<std::vector<TableGridItem *>>();
+
+        // Grid container
+        auto grid = std::make_unique<horizon::Widget>();
+        grid->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+        grid->set_spacing(2);
+
+        // Leave grid resets highlight
+        grid->when_mouse_leave.connect([hover_state, all_cells](horizon::EventContext &) {
+          hover_state->hover_row = -1;
+          hover_state->hover_col = -1;
+          for (auto *cell : *all_cells)
+            cell->invalidate();
+        });
+
+        for (int r = 0; r < ROWS; ++r) {
+          auto row_widget = std::make_unique<horizon::Widget>();
+          row_widget->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
+          row_widget->set_spacing(2);
+
+          for (int c = 0; c < COLS; ++c) {
+            auto cell =
+                std::make_unique<TableGridItem>(r, c, hover_state, all_cells);
+
+            // Click: insert table
+            cell->when_mouse_press.connect(
+                [this, view_ptr, r, c](horizon::MouseButtonEventContext &) {
+                  if (view_ptr && view_ptr->editor()) {
+                    int num_rows = r + 1;
+                    int num_cols = c + 1;
+
+                    // Build the libpluma table markup:
+                    //   \n|TBL:cols=N|\n
+                    //   |ROW|\n|CEL|\n...\n
+                    //   ...
+                    //   |ENDTBL|\n
+                    std::string tbl = "\n|TBL:cols=";
+                    tbl += std::to_string(num_cols);
+                    tbl += "|\n";
+                    for (int ri = 0; ri < num_rows; ++ri) {
+                      tbl += "|ROW|\n";
+                      for (int ci = 0; ci < num_cols; ++ci) {
+                        // A single space ensures the cell has non-zero
+                        // height so the table is visible when empty.
+                        tbl += "|CEL|\n \n";
+                      }
+                    }
+                    tbl += "|ENDTBL|\n";
+
+                    auto editor = view_ptr->editor();
+                    editor->insertTextAtCursor(tbl);
+                    view_ptr->calculate_layout();
+                    view_ptr->invalidate();
+                    if (view_ptr->parent()) {
+                      view_ptr->parent()->calculate_layout();
+                      view_ptr->parent()->invalidate();
+                    }
+                  }
+                  application()->close_vault();
+                });
+
+            all_cells->push_back(cell.get());
+            row_widget->add_child(std::move(cell));
+          }
+          grid->add_child(std::move(row_widget));
+        }
+
+        // Hint label (updates on hover)
+        auto hint = std::make_unique<horizon::Label>("0 x 0");
+        hint->set_fixed_size(20);
+        // We keep a raw ptr to update text — the label lives inside content
+        // which owns it, so it's valid for the vault lifetime.
+        // (No easy way to update dynamically without a tick; we leave a static hint)
+        content->add_child(std::move(grid));
+        content->add_child(std::move(hint));
+
+        // Size the vault: COLS * (cell+spacing) + padding
+        int vault_w = COLS * 24 + 20;
+        int vault_h = ROWS * 24 + 60;
+        content->set_size(vault_w, vault_h);
+        vault->set_content(std::move(content));
+        application()->show_vault(vault.release(), -1, -1, 0,
+                                  home_ptr->btn_table());
+      });
+  // ── End Insert Table vault ─────────────────────────────────────────────
 
   m_home_sections.back()->group_lists()->when_button_clicked.connect(
       [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr](horizon::GroupButtonClickEvent &ctx) {
