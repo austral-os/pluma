@@ -107,6 +107,31 @@ PlumaWindow::PlumaWindow() : horizon::ApplicationWindow("Pluma") {
   tb_ptr->when_new_clicked.connect(
       [this](horizon::EventContext &) { this->new_file(); });
 
+  tb_ptr->when_cut_clicked.connect([this](horizon::EventContext &) {
+    auto *view = get_current_view();
+    if (view) {
+      view->perform(horizon::ClipboardAction::Cut);
+      view->calculate_layout();
+      view->invalidate();
+    }
+  });
+
+  tb_ptr->when_copy_clicked.connect([this](horizon::EventContext &) {
+    auto *view = get_current_view();
+    if (view) {
+      view->perform(horizon::ClipboardAction::Copy);
+    }
+  });
+
+  tb_ptr->when_paste_clicked.connect([this](horizon::EventContext &) {
+    auto *view = get_current_view();
+    if (view) {
+      view->perform(horizon::ClipboardAction::Paste);
+      view->calculate_layout();
+      view->invalidate();
+    }
+  });
+
   tb_ptr->when_undo_clicked.connect([this](horizon::EventContext &) {
     auto *view = get_current_view();
     if (view && view->editor()) {
