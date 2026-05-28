@@ -168,10 +168,10 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
 
   auto btn_align = std::make_unique<MultiToggleGroupButton>();
   btn_align->set_fixed_size(160);
-  btn_align->add_item("", "pluma-left", 24, 48);
-  btn_align->add_item("", "pluma-center", 24, 48);
-  btn_align->add_item("", "pluma-right", 24, 48);
-  btn_align->add_item("", "pluma-justify", 24, 48);
+  btn_align->add_item("", "pluma-left", 16, 46);
+  btn_align->add_item("", "pluma-center", 16, 46);
+  btn_align->add_item("", "pluma-right", 16, 46);
+  btn_align->add_item("", "pluma-justify", 16, 46);
   if (btn_align->children().size() >= 4) {
     set_tooltip(btn_align->children()[0].get(), "Alinear a la izquierda");
     set_tooltip(btn_align->children()[1].get(), "Centrar");
