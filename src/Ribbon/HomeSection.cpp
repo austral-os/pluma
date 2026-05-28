@@ -75,11 +75,11 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
 
   auto btn_styles = std::make_unique<MultiToggleGroupButton>();
   btn_styles->set_fixed_size(240);
-  btn_styles->add_item("B");
-  btn_styles->add_item("I");
-  btn_styles->add_item("U");
-  btn_styles->add_item("x²");
-  btn_styles->add_item("x₂");
+  btn_styles->add_item("", "pluma-bold", 16, 48);
+  btn_styles->add_item("", "pluma-italic", 16, 48);
+  btn_styles->add_item("", "pluma-underline", 16, 48);
+  btn_styles->add_item("", "pluma-super", 16, 48);
+  btn_styles->add_item("", "pluma-subs", 16, 48);
   if (btn_styles->children().size() >= 5) {
     set_tooltip(btn_styles->children()[0].get(), "Negrita");
     set_tooltip(btn_styles->children()[1].get(), "Cursiva");
@@ -89,10 +89,18 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   }
   m_group_styles = btn_styles.get();
 
+  auto icon_fc = std::make_unique<horizon::Icon>();
+  icon_fc->set_icon_name("pluma-fc");
+  icon_fc->set_icon_size(16);
+
+  auto icon_bg = std::make_unique<horizon::Icon>();
+  icon_bg->set_icon_name("pluma-bg-color");
+  icon_bg->set_icon_size(16);
+
   auto btn_colors = std::make_unique<horizon::GroupButton>();
   btn_colors->set_fixed_size(80);
-  btn_colors->add_item("A_");
-  btn_colors->add_item("ab");
+  btn_colors->add_item(std::move(icon_fc));
+  btn_colors->add_item(std::move(icon_bg));
   if (btn_colors->children().size() >= 2) {
     set_tooltip(btn_colors->children()[0].get(), "Color de texto");
     set_tooltip(btn_colors->children()[1].get(), "Color de fondo");
@@ -115,26 +123,34 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   auto para_container = std::make_unique<horizon::Widget>();
   para_container->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
   para_container->set_spacing(4);
-  para_container->set_fixed_size(180);
+  para_container->set_fixed_size(200);
 
   auto para_row1 = std::make_unique<horizon::Widget>();
   para_row1->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
   para_row1->set_spacing(4);
 
   auto btn_lists = std::make_unique<MultiToggleGroupButton>();
-  btn_lists->set_fixed_size(80);
-  btn_lists->add_item("-");
-  btn_lists->add_item("1.");
+  btn_lists->set_fixed_size(100);
+  btn_lists->add_item("", "pluma-ul", 24, 48);
+  btn_lists->add_item("", "pluma-ol", 24, 48);
   if (btn_lists->children().size() >= 2) {
     set_tooltip(btn_lists->children()[0].get(), "Viñetas");
     set_tooltip(btn_lists->children()[1].get(), "Numeración");
   }
   m_group_lists = btn_lists.get();
 
+  auto icon_indent_less = std::make_unique<horizon::Icon>();
+  icon_indent_less->set_icon_name("pluma-indent-less");
+  icon_indent_less->set_icon_size(16);
+
+  auto icon_indent_more = std::make_unique<horizon::Icon>();
+  icon_indent_more->set_icon_name("pluma-indent-more");
+  icon_indent_more->set_icon_size(16);
+
   auto btn_indent = std::make_unique<horizon::GroupButton>();
   btn_indent->set_fixed_size(80);
-  btn_indent->add_item("<");
-  btn_indent->add_item(">");
+  btn_indent->add_item(std::move(icon_indent_less));
+  btn_indent->add_item(std::move(icon_indent_more));
   if (btn_indent->children().size() >= 2) {
     set_tooltip(btn_indent->children()[0].get(), "Disminuir sangría");
     set_tooltip(btn_indent->children()[1].get(), "Aumentar sangría");
@@ -150,10 +166,10 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
 
   auto btn_align = std::make_unique<MultiToggleGroupButton>();
   btn_align->set_fixed_size(160);
-  btn_align->add_item("L");
-  btn_align->add_item("C");
-  btn_align->add_item("R");
-  btn_align->add_item("J");
+  btn_align->add_item("", "pluma-left", 24, 48);
+  btn_align->add_item("", "pluma-center", 24, 48);
+  btn_align->add_item("", "pluma-right", 24, 48);
+  btn_align->add_item("", "pluma-justify", 24, 48);
   if (btn_align->children().size() >= 4) {
     set_tooltip(btn_align->children()[0].get(), "Alinear a la izquierda");
     set_tooltip(btn_align->children()[1].get(), "Centrar");
