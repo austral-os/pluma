@@ -142,10 +142,12 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   auto icon_indent_less = std::make_unique<horizon::Icon>();
   icon_indent_less->set_icon_name("pluma-indent-less");
   icon_indent_less->set_icon_size(16);
+  icon_indent_less->set_use_theme_colors(true);
 
   auto icon_indent_more = std::make_unique<horizon::Icon>();
   icon_indent_more->set_icon_name("pluma-indent-more");
   icon_indent_more->set_icon_size(16);
+  icon_indent_more->set_use_theme_colors(true);
 
   auto btn_indent = std::make_unique<horizon::GroupButton>();
   btn_indent->set_fixed_size(80);
@@ -191,7 +193,9 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   auto btn_image =
       std::make_unique<horizon::ToolbarButton>("Image", "pluma-insert-image");
   btn_image->set_size(64, 64);
+  btn_image->set_icon_size(32);
   btn_image->set_fixed_size(64);
+  set_tooltip(btn_image.get(), "Insertar imagen");
   m_btn_image = btn_image.get();
   m_section_insert->add_widget(std::move(btn_image));
 
@@ -199,17 +203,21 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   col_container_insert->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
   col_container_insert->set_spacing(4);
   // col_container_insert->set_size(80, 64);
-  col_container_insert->set_fixed_size(80);
+  col_container_insert->set_fixed_size(50);
 
   auto btn_table =
       std::make_unique<horizon::ToolbarButton>("", "pluma-insert-table");
-  btn_table->set_fixed_size(24);
+  btn_table->set_icon_size(24);
+  btn_table->set_fixed_size(36);
+  set_tooltip(btn_table.get(), "Insertar tabla");
   m_btn_table = btn_table.get();
   col_container_insert->add_child(std::move(btn_table));
 
   auto btn_shape =
       std::make_unique<horizon::ToolbarButton>("", "pluma-draw-brush");
-  btn_shape->set_fixed_size(24);
+  btn_shape->set_icon_size(24);
+  btn_shape->set_fixed_size(36);
+  set_tooltip(btn_shape.get(), "Dibujar forma");
   m_btn_shape = btn_shape.get();
   col_container_insert->add_child(std::move(btn_shape));
 
