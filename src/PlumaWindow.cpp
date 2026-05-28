@@ -400,9 +400,7 @@ void PlumaWindow::create_tab(const std::string &title,
                     for (int ri = 0; ri < num_rows; ++ri) {
                       tbl += "|ROW|\n";
                       for (int ci = 0; ci < num_cols; ++ci) {
-                        // A single space ensures the cell has non-zero
-                        // height so the table is visible when empty.
-                        tbl += "|CEL|\n \n";
+                        tbl += "|CEL|\n\n";
                       }
                     }
                     tbl += "|ENDTBL|\n";
