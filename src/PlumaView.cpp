@@ -210,6 +210,17 @@ PlumaView::PlumaView() : horizon::Widget() {
   });
 }
 
+void PlumaView::set_application_recursive(horizon::WaylandWindow *app) {
+    horizon::Widget::set_application_recursive(app);
+    if (app && m_blink_timer_id == 0) {
+        m_blink_timer_id = app->add_timer(500, [this]() {
+            if (m_editor && m_editor->onBlinkTimer()) {
+                invalidate();
+            }
+        }, true);
+    }
+}
+
 void PlumaView::draw(horizon::GraphicsContext &ctx) {
   if (!m_editor)
     return;

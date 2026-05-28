@@ -38,10 +38,13 @@ public:
 
     std::shared_ptr<pluma::PlumaEditor> editor() { return m_editor; }
 
+    void set_application_recursive(horizon::WaylandWindow *app) override;
+
 private:
     std::shared_ptr<pluma::PlumaEditor> m_editor;
     std::string m_current_path;
     std::string m_clipboard_buffer;
+    size_t m_blink_timer_id{0};
 };
 
 } // namespace pluma_app
