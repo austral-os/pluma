@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
   app.set_icon_name("pluma-writer");
 
   auto &about = app.about_manager();
-  about.set_app_title("Pluma");
+  about.set_app_title("Pluma Writer");
   about.set_app_description(
       "A rich text editor for the Horizon desktop environment.");
   about.set_app_version(APP_VERSION);
