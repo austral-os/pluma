@@ -87,12 +87,14 @@ MainToolbar::MainToolbar() : horizon::Widget() {
     this->when_paste_clicked.run(ctx);
   });
 
-  m_btn_undo->when_click.connect([this](horizon::EventContext &ctx) {
-    this->when_undo_clicked.run(ctx);
+  m_btn_undo->when_click.connect([this](horizon::EventContext &) {
+    if (application())
+      application()->signal_manager.emit("undo");
   });
 
-  m_btn_redo->when_click.connect([this](horizon::EventContext &ctx) {
-    this->when_redo_clicked.run(ctx);
+  m_btn_redo->when_click.connect([this](horizon::EventContext &) {
+    if (application())
+      application()->signal_manager.emit("redo");
   });
 
   add_child(horizon::Spacer(5));

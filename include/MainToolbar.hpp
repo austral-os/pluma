@@ -15,8 +15,6 @@ public:
   virtual ~MainToolbar() = default;
 
   horizon::EventsManager<horizon::EventContext> when_new_clicked;
-  horizon::EventsManager<horizon::EventContext> when_undo_clicked;
-  horizon::EventsManager<horizon::EventContext> when_redo_clicked;
   horizon::EventsManager<horizon::EventContext> when_cut_clicked;
   horizon::EventsManager<horizon::EventContext> when_copy_clicked;
   horizon::EventsManager<horizon::EventContext> when_paste_clicked;

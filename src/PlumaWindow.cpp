@@ -132,31 +132,6 @@ PlumaWindow::PlumaWindow() : horizon::ApplicationWindow("Pluma") {
     }
   });
 
-  tb_ptr->when_undo_clicked.connect([this](horizon::EventContext &) {
-    auto *view = get_current_view();
-    if (view && view->editor()) {
-      view->editor()->undo();
-      view->calculate_layout();
-      view->invalidate();
-      if (view->parent()) {
-        view->parent()->calculate_layout();
-        view->parent()->invalidate();
-      }
-    }
-  });
-
-  tb_ptr->when_redo_clicked.connect([this](horizon::EventContext &) {
-    auto *view = get_current_view();
-    if (view && view->editor()) {
-      view->editor()->redo();
-      view->calculate_layout();
-      view->invalidate();
-      if (view->parent()) {
-        view->parent()->calculate_layout();
-        view->parent()->invalidate();
-      }
-    }
-  });
 
   auto tabs = std::make_unique<horizon::TabCollection>();
   m_tabs = tabs.get();

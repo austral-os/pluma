@@ -208,6 +208,30 @@ PlumaView::PlumaView() : horizon::Widget() {
       invalidate();
     }
   });
+
+  when_undo.connect([this](horizon::EventContext &ctx) {
+    if (m_editor) {
+      m_editor->undo();
+      calculate_layout();
+      invalidate();
+      if (parent()) {
+        parent()->calculate_layout();
+        parent()->invalidate();
+      }
+    }
+  });
+
+  when_redo.connect([this](horizon::EventContext &ctx) {
+    if (m_editor) {
+      m_editor->redo();
+      calculate_layout();
+      invalidate();
+      if (parent()) {
+        parent()->calculate_layout();
+        parent()->invalidate();
+      }
+    }
+  });
 }
 
 void PlumaView::set_application_recursive(horizon::WaylandWindow *app) {

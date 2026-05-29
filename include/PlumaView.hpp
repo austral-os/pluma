@@ -33,6 +33,9 @@ public:
     std::vector<std::string> provided_mime_types() const override { return {"text/plain"}; }
     std::vector<std::string> accepted_mime_types() const override { return {"text/plain"}; }
 
+    // Undo/Redo Support
+    bool supports_undo() const override { return true; }
+
     const std::string& current_path() const { return m_current_path; }
     void set_current_path(const std::string& path) { m_current_path = path; }
 
