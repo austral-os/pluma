@@ -57,7 +57,7 @@ set(CPACK_PACKAGE_CONTACT "horaciodrs@gmail.com")
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "hdrdevs")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libpluma (>= 0.1.0), horizon")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libpluma (>= 0.1.0), libhorizon")
 set(CPACK_DEBIAN_PACKAGE_SECTION "editors")
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
 
