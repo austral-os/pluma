@@ -31,10 +31,35 @@ target_link_libraries(pluma-app PRIVATE
 
 target_compile_definitions(pluma-app PRIVATE APP_VERSION="${PROJECT_VERSION}")
 
-set_target_properties(pluma-app PROPERTIES
-    BUILD_WITH_INSTALL_RPATH TRUE
-    INSTALL_RPATH "${CMAKE_CURRENT_SOURCE_DIR}/../lib-pluma/build"
+
+# --- Installation ---
+include(GNUInstallDirs)
+install(TARGETS pluma-app
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+install(FILES pluma.desktop
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
+)
 
+install(DIRECTORY assets/icons/scalable/
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable
+)
+
+# --- Packaging (CPack) ---
+set(CPACK_PACKAGE_NAME "pluma")
+set(CPACK_PACKAGE_VENDOR "hdrdevs")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pluma Rich Text Editor")
+set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+set(CPACK_PACKAGE_CONTACT "horaciodrs@gmail.com")
+
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "hdrdevs")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libpluma (>= 0.1.0), horizon")
+set(CPACK_DEBIAN_PACKAGE_SECTION "editors")
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+
+include(CPack)
 
