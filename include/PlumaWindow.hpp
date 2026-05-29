@@ -13,7 +13,7 @@ namespace pluma_app {
 
 class PlumaWindow : public horizon::ApplicationWindow {
 public:
-    PlumaWindow();
+    PlumaWindow(const std::string& initial_file = "");
     virtual ~PlumaWindow() = default;
 
     uint32_t file_capabilities() const override { return horizon::FileAll; }

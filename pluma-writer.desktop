@@ -1,10 +1,10 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Pluma
+Name=Pluma Writer
 Comment=Pluma Rich Text Editor
-Exec=pluma-app %F
-Icon=pluma
+Exec=pluma-writer %F
+Icon=pluma-writer
 Terminal=false
 Categories=Office;TextEditor;
 MimeType=text/plain;application/x-pluma;

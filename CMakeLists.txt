@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(pluma-app VERSION 0.1.0 LANGUAGES CXX)
+project(pluma-writer VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,38 +11,38 @@ pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
-add_executable(pluma-app ${SOURCES})
+add_executable(pluma-writer ${SOURCES})
 
-target_include_directories(pluma-app PRIVATE 
+target_include_directories(pluma-writer PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../lib-pluma/include
     ${CAIRO_INCLUDE_DIRS}
     ${FONTCONFIG_INCLUDE_DIRS}
 )
 
-target_link_directories(pluma-app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../lib-pluma/build)
+target_link_directories(pluma-writer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../lib-pluma/build)
 
-target_link_libraries(pluma-app PRIVATE 
+target_link_libraries(pluma-writer PRIVATE 
     PkgConfig::HORIZON
     pluma
     ${CAIRO_LIBRARIES}
     ${FONTCONFIG_LIBRARIES}
 )
 
-target_compile_definitions(pluma-app PRIVATE APP_VERSION="${PROJECT_VERSION}")
+target_compile_definitions(pluma-writer PRIVATE APP_VERSION="${PROJECT_VERSION}")
 
 
 # --- Installation ---
 include(GNUInstallDirs)
-install(TARGETS pluma-app
+install(TARGETS pluma-writer
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(FILES pluma.desktop
+install(FILES pluma-writer.desktop
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
 )
 
-install(FILES pluma.xml
+install(FILES pluma-writer.xml
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/mime/packages
 )
 
@@ -51,7 +51,7 @@ install(DIRECTORY assets/icons/scalable/
 )
 
 # --- Packaging (CPack) ---
-set(CPACK_PACKAGE_NAME "pluma")
+set(CPACK_PACKAGE_NAME "pluma-writer")
 set(CPACK_PACKAGE_VENDOR "hdrdevs")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pluma Rich Text Editor")
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")

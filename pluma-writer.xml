@@ -3,6 +3,6 @@
   <mime-type type="application/x-pluma">
     <comment>Pluma Document</comment>
     <glob pattern="*.pluma"/>
-    <icon name="pluma"/>
+    <icon name="pluma-writer"/>
   </mime-type>
 </mime-info>

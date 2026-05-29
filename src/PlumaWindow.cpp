@@ -95,7 +95,7 @@ private:
 };
 // ── End Table Grid Picker ───────────────────────────────────────────────────
 
-PlumaWindow::PlumaWindow() : horizon::ApplicationWindow("Pluma") {
+PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::ApplicationWindow("Pluma") {
   set_title("Pluma Rich Text Editor");
   set_size(1024, 768);
   show_status_bar();
@@ -164,8 +164,13 @@ PlumaWindow::PlumaWindow() : horizon::ApplicationWindow("Pluma") {
 
   setup_events();
 
-  // Create an initial empty tab
-  new_file();
+  if (!initial_file.empty()) {
+    std::filesystem::path p(initial_file);
+    create_tab(p.filename().string(), initial_file);
+  } else {
+    // Create an initial empty tab
+    new_file();
+  }
 }
 
 void PlumaWindow::new_file() { create_tab("Sin título"); }
