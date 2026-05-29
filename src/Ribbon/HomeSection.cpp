@@ -55,9 +55,19 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
     w->set_tooltip(std::move(t));
   };
 
+  auto icon_fntsize_inc = std::make_unique<horizon::Icon>();
+  icon_fntsize_inc->set_icon_name("pluma-fontsize-inc");
+  icon_fntsize_inc->set_icon_size(16);
+  icon_fntsize_inc->set_use_theme_colors(true);
+
+  auto icon_fntsize_dec = std::make_unique<horizon::Icon>();
+  icon_fntsize_dec->set_icon_name("pluma-fontsize-dec");
+  icon_fntsize_dec->set_icon_size(16);
+  icon_fntsize_dec->set_use_theme_colors(true);
+
   auto group_btn = std::make_unique<horizon::GroupButton>();
-  group_btn->add_item("A+");
-  group_btn->add_item("A-");
+  group_btn->add_item(std::move(icon_fntsize_inc));
+  group_btn->add_item(std::move(icon_fntsize_dec));
   if (group_btn->children().size() >= 2) {
     set_tooltip(group_btn->children()[0].get(), "Aumentar tamaño de fuente");
     set_tooltip(group_btn->children()[1].get(), "Disminuir tamaño de fuente");
