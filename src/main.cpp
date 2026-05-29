@@ -1,23 +1,23 @@
-#include <horizon/Application.hpp>
 #include "PlumaWindow.hpp"
+#include <horizon/Application.hpp>
 
 using namespace pluma_app;
 
-int main(int argc, char** argv) {
-    horizon::Application app("org.horizon.pluma", 1024, 768);
-    app.set_name("Pluma");
-    app.set_icon_name("accessories-text-editor");
+int main(int argc, char **argv) {
+  horizon::Application app("org.horizon.pluma", 1024, 768);
+  app.set_name("Pluma");
+  app.set_icon_name("pluma");
 
-    auto &about = app.about_manager();
-    about.set_app_title("Pluma");
-    about.set_app_description("A rich text editor for the Horizon desktop environment.");
-    about.set_app_version(APP_VERSION);
-    about.set_app_icon("accessories-text-editor");
+  auto &about = app.about_manager();
+  about.set_app_title("Pluma");
+  about.set_app_description(
+      "A rich text editor for the Horizon desktop environment.");
+  about.set_app_version(APP_VERSION);
+  about.set_app_icon("pluma");
 
+  auto window = std::make_unique<PlumaWindow>();
+  app.set_root(std::move(window));
 
-    auto window = std::make_unique<PlumaWindow>();
-    app.set_root(std::move(window));
-
-    app.run();
-    return 0;
+  app.run();
+  return 0;
 }
