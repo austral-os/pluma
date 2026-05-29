@@ -42,6 +42,10 @@ install(FILES pluma.desktop
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
 )
 
+install(FILES pluma.xml
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/mime/packages
+)
+
 install(DIRECTORY assets/icons/scalable/
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable
 )
