@@ -4,8 +4,8 @@
 using namespace pluma_app;
 
 int main(int argc, char **argv) {
-  horizon::Application app("org.horizon.pluma", 1024, 768);
-  app.set_name("Pluma");
+  horizon::Application app("pluma-writer", 1024, 768);
+  app.set_name("Pluma Writer");
   app.set_icon_name("pluma-writer");
 
   auto &about = app.about_manager();
