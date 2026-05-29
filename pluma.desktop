@@ -7,5 +7,5 @@ Exec=pluma-app %F
 Icon=pluma
 Terminal=false
 Categories=Office;TextEditor;
-MimeType=text/plain;
+MimeType=text/plain;application/x-pluma;
 StartupNotify=true
