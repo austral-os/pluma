@@ -9,7 +9,7 @@ namespace pluma_app {
 class PlumaView : public horizon::Widget {
 public:
     PlumaView();
-    virtual ~PlumaView() = default;
+    virtual ~PlumaView();
 
     void draw(horizon::GraphicsContext& ctx) override;
     void calculate_layout() override;

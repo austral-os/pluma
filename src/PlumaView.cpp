@@ -234,8 +234,20 @@ PlumaView::PlumaView() : horizon::Widget() {
   });
 }
 
+PlumaView::~PlumaView() {
+    if (application() && m_blink_timer_id != 0) {
+        application()->stop_timer(m_blink_timer_id);
+    }
+}
+
 void PlumaView::set_application_recursive(horizon::WaylandWindow *app) {
+    if (!app && application() && m_blink_timer_id != 0) {
+        application()->stop_timer(m_blink_timer_id);
+        m_blink_timer_id = 0;
+    }
+    
     horizon::Widget::set_application_recursive(app);
+    
     if (app && m_blink_timer_id == 0) {
         m_blink_timer_id = app->add_timer(500, [this]() {
             if (m_editor && m_editor->onBlinkTimer()) {
