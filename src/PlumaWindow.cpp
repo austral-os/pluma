@@ -96,7 +96,7 @@ private:
 // ── End Table Grid Picker ───────────────────────────────────────────────────
 
 PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::ApplicationWindow("Pluma") {
-  set_title("Pluma Rich Text Editor");
+  set_title("Pluma Writer");
   set_size(1024, 768);
   show_status_bar();
 
