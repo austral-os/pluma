@@ -7,6 +7,7 @@
 #include <horizon/Application.hpp>
 #include <horizon/Spacer.hpp>
 #include "Widgets/MarginButton.hpp"
+#include "Widgets/OptionButton.hpp"
 
 namespace pluma_app {
 
@@ -65,29 +66,30 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
     w->set_tooltip(std::move(t));
   };
 
+  auto col_wrapper = std::make_unique<horizon::Widget>();
+  col_wrapper->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
+  col_wrapper->set_fixed_size(180); // Sets width to 180
+
   // Contenedor vertical para "Orientation" y "Size"
   auto col_container = std::make_unique<horizon::Widget>();
   col_container->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+  col_container->set_position_type(horizon::WidgetPositionTypes::FILL);
   col_container->set_spacing(4);
-  col_container->set_fixed_size(50);
 
-  // Botón "Orientation" (sin texto, como el de tabla en Insert)
-  auto btn_orient = std::make_unique<horizon::ToolbarButton>("", "pluma-orientation");
-  btn_orient->set_icon_size(24);
-  btn_orient->set_fixed_size(36);
+  // Botón "Orientation"
+  auto btn_orient = std::make_unique<OptionButton>("Orientación", "pluma-orientation");
   set_tooltip(btn_orient.get(), "Orientación de página");
   m_btn_orientation = btn_orient.get();
   col_container->add_child(std::move(btn_orient));
 
-  // Botón "Size" (sin texto, como el de forma en Insert)
-  auto btn_size = std::make_unique<horizon::ToolbarButton>("", "pluma-size");
-  btn_size->set_icon_size(24);
-  btn_size->set_fixed_size(36);
+  // Botón "Size"
+  auto btn_size = std::make_unique<OptionButton>("Tamaño", "pluma-size");
   set_tooltip(btn_size.get(), "Tamaño de página");
   m_btn_size = btn_size.get();
   col_container->add_child(std::move(btn_size));
 
-  m_section_setup->add_widget(std::move(col_container));
+  col_wrapper->add_child(std::move(col_container));
+  m_section_setup->add_widget(std::move(col_wrapper));
 }
 
 } // namespace pluma_app

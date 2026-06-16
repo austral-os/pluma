@@ -10,19 +10,6 @@ MarginButton::MarginButton(const std::string& name, const std::string& dims, int
   set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
   set_position_type(horizon::WidgetPositionTypes::FILL);
   set_fixed_size(66); // 15 + 30 + 4(spacing) + 16(margins) = 65 -> 66 is safe
-  set_focusable(true);
-
-  m_bg.set_corner_radius({6, 6, 6, 6});
-
-  when_mouse_enter.connect([this](auto&) {
-      m_hovered = true;
-      invalidate();
-  });
-
-  when_mouse_leave.connect([this](auto&) {
-      m_hovered = false;
-      invalidate();
-  });
 
   auto inner = std::make_unique<horizon::Widget>();
   inner->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
@@ -47,18 +34,6 @@ MarginButton::MarginButton(const std::string& name, const std::string& dims, int
 
 pluma::PageMargins MarginButton::get_margins() const {
   return m_margins;
-}
-
-void MarginButton::draw(horizon::GraphicsContext& gc) {
-  if (m_hovered) {
-      m_bg.set_position(m_start_draw_x, m_start_draw_y);
-      m_bg.set_size(m_width, m_height);
-      m_bg.set_draw_state(m_draw_state);
-      m_bg.set_application_recursive(application());
-      m_bg.calculate_layout();
-      m_bg.draw(gc);
-  }
-  horizon::Widget::draw(gc);
 }
 
 } // namespace pluma_app

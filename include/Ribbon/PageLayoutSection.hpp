@@ -5,6 +5,7 @@
 #include <horizon/ToolbarButton.hpp>
 #include <horizon/EventsManager.hpp>
 #include <pluma/Layout/PageSize.hpp>
+#include "Widgets/OptionButton.hpp"
 
 namespace pluma_app {
 
@@ -14,16 +15,16 @@ public:
   ~PageLayoutSection() = default;
 
   horizon::ToolbarButton* btn_margins() const { return m_btn_margins; }
-  horizon::ToolbarButton* btn_orientation() const { return m_btn_orientation; }
-  horizon::ToolbarButton* btn_size() const { return m_btn_size; }
+  OptionButton* btn_orientation() const { return m_btn_orientation; }
+  OptionButton* btn_size() const { return m_btn_size; }
 
   horizon::EventsManager<pluma::PageMargins> when_margin_selected;
 
 private:
   horizon::RibbonSection *m_section_setup = nullptr;
   horizon::ToolbarButton *m_btn_margins = nullptr;
-  horizon::ToolbarButton *m_btn_orientation = nullptr;
-  horizon::ToolbarButton *m_btn_size = nullptr;
+  OptionButton *m_btn_orientation = nullptr;
+  OptionButton *m_btn_size = nullptr;
 };
 
 } // namespace pluma_app
