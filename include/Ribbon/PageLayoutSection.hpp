@@ -10,12 +10,14 @@
 
 namespace pluma_app {
 
+class PlumaToolbarButton;
+
 class PageLayoutSection {
 public:
   PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_index);
   ~PageLayoutSection() = default;
 
-  horizon::ToolbarButton* btn_margins() const { return m_btn_margins; }
+  PlumaToolbarButton* btn_margins() const { return m_btn_margins; }
   OptionButton* btn_orientation() const { return m_btn_orientation; }
   OptionButton* btn_size() const { return m_btn_size; }
 
@@ -25,7 +27,7 @@ public:
 
 private:
   horizon::RibbonSection *m_section_setup = nullptr;
-  horizon::ToolbarButton *m_btn_margins = nullptr;
+  PlumaToolbarButton *m_btn_margins = nullptr;
   OptionButton *m_btn_orientation = nullptr;
   OptionButton *m_btn_size = nullptr;
 };

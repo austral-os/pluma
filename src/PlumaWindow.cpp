@@ -274,16 +274,24 @@ void PlumaWindow::create_tab(const std::string &title,
   }
 
   auto raw_home_ptr = m_home_sections.back().get();
+  auto raw_img_sec_ptr = m_image_format_sections.back().get();
   horizon::RibbonToolbar* ribbon_ptr = static_cast<horizon::RibbonToolbar*>(tab_container->children()[0].get());
   
   pluma_view->editor()->setCursorStateCallback(
-      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr, rbb_ptr = ribbon_ptr, img_tab = t3](const pluma::CursorState &state) {
+      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr, img_sec_ptr = raw_img_sec_ptr, rbb_ptr = ribbon_ptr, img_tab = t3](const pluma::CursorState &state) {
         if (this->get_current_view() == view_ptr) {
           this->update_status_bar();
           this->update_ribbon_state(view_ptr, home_ptr);
           bool is_image = (state.object_type == pluma::CursorObjectType::Image);
           if (rbb_ptr) {
               rbb_ptr->set_tab_visible(img_tab, is_image);
+          }
+          if (is_image && img_sec_ptr) {
+              auto bag = view_ptr->editor()->getFormatRegistry().getStyleAt(state.logical_offset);
+              auto wrap_val = bag.get(pluma::PropertyId::ImageWrapMode);
+              pluma::TextWrapMode mode = pluma::TextWrapMode::InLine; // Default
+              if (wrap_val) mode = std::get<pluma::TextWrapMode>(*wrap_val);
+              img_sec_ptr->update_active_mode(mode);
           }
         }
       });

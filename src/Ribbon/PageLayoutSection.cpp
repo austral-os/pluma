@@ -8,6 +8,7 @@
 #include <horizon/Spacer.hpp>
 #include "Widgets/MarginButton.hpp"
 #include "Widgets/OptionButton.hpp"
+#include "Widgets/PlumaToolbarButton.hpp"
 
 namespace pluma_app {
 
@@ -15,7 +16,7 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   m_section_setup = ribbon->add_section(tab_index, "Page Setup");
 
   auto btn_margins =
-      std::make_unique<horizon::ToolbarButton>("Margins", "pluma-margin");
+      std::make_unique<PlumaToolbarButton>("Margins", "pluma-margin");
   btn_margins->set_size(64, 64);
   btn_margins->set_icon_size(32);
   btn_margins->set_fixed_size(64);

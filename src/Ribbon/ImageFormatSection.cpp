@@ -1,6 +1,7 @@
 #include "Ribbon/ImageFormatSection.hpp"
 #include <horizon/ToolbarButton.hpp>
 #include <horizon/Widget.hpp>
+#include "Widgets/PlumaToolbarButton.hpp"
 
 namespace pluma_app {
 
@@ -13,7 +14,7 @@ ImageFormatSection::ImageFormatSection(horizon::RibbonToolbar *ribbon, int tab_i
   wrap_container->set_fixed_size(480); // Ensure enough width for 7x 64px buttons + spacing
 
   auto create_wrap_button = [this](const std::string& name, const std::string& icon_name, pluma::TextWrapMode mode) {
-      auto btn = std::make_unique<horizon::ToolbarButton>(name, icon_name);
+      auto btn = std::make_unique<PlumaToolbarButton>(name, icon_name);
       btn->set_size(64, 64);
       btn->set_icon_size(32);
       btn->set_fixed_size(64);
@@ -22,6 +23,7 @@ ImageFormatSection::ImageFormatSection(horizon::RibbonToolbar *ribbon, int tab_i
           pluma::TextWrapMode mode_copy = mode;
           when_wrap_mode_selected.run(mode_copy);
       });
+      m_wrap_buttons[mode] = btn.get();
       return btn;
   };
 
@@ -34,6 +36,12 @@ ImageFormatSection::ImageFormatSection(horizon::RibbonToolbar *ribbon, int tab_i
   wrap_container->add_child(create_wrap_button("Inline", "pluma-image-inline", pluma::TextWrapMode::InLine));
 
   m_section_format->add_widget(std::move(wrap_container));
+}
+
+void ImageFormatSection::update_active_mode(pluma::TextWrapMode mode) {
+    for (auto& [m, btn] : m_wrap_buttons) {
+        btn->set_active(m == mode);
+    }
 }
 
 } // namespace pluma_app
