@@ -1,12 +1,13 @@
 #include "Ribbon/ImageFormatSection.hpp"
 #include <horizon/ToolbarButton.hpp>
 #include <horizon/Widget.hpp>
+#include <horizon/I18n.hpp>
 #include "Widgets/PlumaToolbarButton.hpp"
 
 namespace pluma_app {
 
 ImageFormatSection::ImageFormatSection(horizon::RibbonToolbar *ribbon, int tab_index) {
-  m_section_format = ribbon->add_section(tab_index, "Image Position");
+  m_section_format = ribbon->add_section(tab_index, horizon::i18n().tr("pluma-writer.ribbon.image_position"));
 
   auto wrap_container = std::make_unique<horizon::Widget>();
   wrap_container->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
@@ -27,13 +28,13 @@ ImageFormatSection::ImageFormatSection(horizon::RibbonToolbar *ribbon, int tab_i
       return btn;
   };
 
-  wrap_container->add_child(create_wrap_button("Square", "pluma-image-square", pluma::TextWrapMode::Square));
-  wrap_container->add_child(create_wrap_button("Tight", "pluma-image-tight", pluma::TextWrapMode::Tight));
-  wrap_container->add_child(create_wrap_button("Top/Bottom", "pluma-image-topbottom", pluma::TextWrapMode::TopAndBottom));
-  wrap_container->add_child(create_wrap_button("Through", "pluma-image-through", pluma::TextWrapMode::Through));
-  wrap_container->add_child(create_wrap_button("In Front", "pluma-image-infront", pluma::TextWrapMode::InFrontOfText));
-  wrap_container->add_child(create_wrap_button("Behind", "pluma-image-behind", pluma::TextWrapMode::BehindText));
-  wrap_container->add_child(create_wrap_button("Inline", "pluma-image-inline", pluma::TextWrapMode::InLine));
+  wrap_container->add_child(create_wrap_button(horizon::i18n().tr("pluma-writer.ribbon.square"), "pluma-image-square", pluma::TextWrapMode::Square));
+  wrap_container->add_child(create_wrap_button(horizon::i18n().tr("pluma-writer.ribbon.tight"), "pluma-image-tight", pluma::TextWrapMode::Tight));
+  wrap_container->add_child(create_wrap_button(horizon::i18n().tr("pluma-writer.ribbon.top_bottom"), "pluma-image-topbottom", pluma::TextWrapMode::TopAndBottom));
+  wrap_container->add_child(create_wrap_button(horizon::i18n().tr("pluma-writer.ribbon.through"), "pluma-image-through", pluma::TextWrapMode::Through));
+  wrap_container->add_child(create_wrap_button(horizon::i18n().tr("pluma-writer.ribbon.in_front"), "pluma-image-infront", pluma::TextWrapMode::InFrontOfText));
+  wrap_container->add_child(create_wrap_button(horizon::i18n().tr("pluma-writer.ribbon.behind"), "pluma-image-behind", pluma::TextWrapMode::BehindText));
+  wrap_container->add_child(create_wrap_button(horizon::i18n().tr("pluma-writer.ribbon.inline"), "pluma-image-inline", pluma::TextWrapMode::InLine));
 
   m_section_format->add_widget(std::move(wrap_container));
 }

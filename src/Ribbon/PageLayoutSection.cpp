@@ -6,17 +6,19 @@
 #include <horizon/Vault.hpp>
 #include <horizon/Application.hpp>
 #include <horizon/Spacer.hpp>
+#include <horizon/I18n.hpp>
 #include "Widgets/MarginButton.hpp"
 #include "Widgets/OptionButton.hpp"
 #include "Widgets/PlumaToolbarButton.hpp"
+#include "Widgets/SizeButton.hpp"
 
 namespace pluma_app {
 
 PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_index) {
-  m_section_setup = ribbon->add_section(tab_index, "Page Setup");
+  m_section_setup = ribbon->add_section(tab_index, horizon::i18n().tr("pluma-writer.ribbon.page_setup"));
 
   auto btn_margins =
-      std::make_unique<PlumaToolbarButton>("Margins", "pluma-margin");
+      std::make_unique<PlumaToolbarButton>(horizon::i18n().tr("pluma-writer.ribbon.margins"), "pluma-margin");
   btn_margins->set_size(64, 64);
   btn_margins->set_icon_size(32);
   btn_margins->set_fixed_size(64);
@@ -42,16 +44,16 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   vault_content->set_spacing(4);
   vault_content->set_margin(8);
 
-  auto title = std::make_unique<horizon::Label>("Márgenes");
+  auto title = std::make_unique<horizon::Label>(horizon::i18n().tr("pluma-writer.page_setup.margins_title"));
   title->set_font_size(20);
   title->set_font_weight(horizon::FONT_WEIGHT_BOLD);
   title->set_fixed_size(24);
   vault_content->add_child(std::move(title));
 
-  vault_content->add_child(create_margin_item("Normal", "Sup: 2.54 cm   Inf: 2.54 cm\nIzq: 2.54 cm   Der: 2.54 cm", 1440, 1440, 1440, 1440));
-  vault_content->add_child(create_margin_item("Estrecho", "Sup: 1.27 cm   Inf: 1.27 cm\nIzq: 1.27 cm   Der: 1.27 cm", 720, 720, 720, 720));
-  vault_content->add_child(create_margin_item("Moderado", "Sup: 2.54 cm   Inf: 2.54 cm\nIzq: 1.91 cm   Der: 1.91 cm", 1440, 1440, 1080, 1080));
-  vault_content->add_child(create_margin_item("Ancho", "Sup: 2.54 cm   Inf: 2.54 cm\nIzq: 5.08 cm   Der: 5.08 cm", 1440, 1440, 2880, 2880));
+  vault_content->add_child(create_margin_item(horizon::i18n().tr("pluma-writer.page_setup.normal"), horizon::i18n().tr("pluma-writer.page_setup.normal_desc"), 1440, 1440, 1440, 1440));
+  vault_content->add_child(create_margin_item(horizon::i18n().tr("pluma-writer.page_setup.narrow"), horizon::i18n().tr("pluma-writer.page_setup.narrow_desc"), 720, 720, 720, 720));
+  vault_content->add_child(create_margin_item(horizon::i18n().tr("pluma-writer.page_setup.moderate"), horizon::i18n().tr("pluma-writer.page_setup.moderate_desc"), 1440, 1440, 1080, 1080));
+  vault_content->add_child(create_margin_item(horizon::i18n().tr("pluma-writer.page_setup.wide"), horizon::i18n().tr("pluma-writer.page_setup.wide_desc"), 1440, 1440, 2880, 2880));
 
   vault_content->add_child(horizon::Spacer());
 
@@ -78,8 +80,8 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   col_container->set_spacing(4);
 
   // Botón "Orientation"
-  auto btn_orient = std::make_unique<OptionButton>("Orientación", "pluma-page-setup");
-  set_tooltip(btn_orient.get(), "Orientación de página");
+  auto btn_orient = std::make_unique<OptionButton>(horizon::i18n().tr("pluma-writer.ribbon.orientation"), "pluma-page-setup");
+  set_tooltip(btn_orient.get(), horizon::i18n().tr("pluma-writer.ribbon.page_orientation"));
   m_btn_orientation = btn_orient.get();
 
   auto create_orient_item = [this](const std::string& name, const std::string& icon_name, bool landscape) {
@@ -101,14 +103,14 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   vault_orient_content->set_margin(8);
   vault_orient_content->set_size(160, 100);
 
-  auto title_orient = std::make_unique<horizon::Label>("Orientación");
+  auto title_orient = std::make_unique<horizon::Label>(horizon::i18n().tr("pluma-writer.ribbon.orientation"));
   title_orient->set_font_size(20);
   title_orient->set_font_weight(horizon::FONT_WEIGHT_BOLD);
   title_orient->set_fixed_size(24);
   vault_orient_content->add_child(std::move(title_orient));
 
-  vault_orient_content->add_child(create_orient_item("Vertical", "pluma-orientation", false));
-  vault_orient_content->add_child(create_orient_item("Horizontal", "pluma-orientation", true));
+  vault_orient_content->add_child(create_orient_item(horizon::i18n().tr("pluma-writer.ribbon.portrait"), "pluma-orientation", false));
+  vault_orient_content->add_child(create_orient_item(horizon::i18n().tr("pluma-writer.ribbon.landscape"), "pluma-orientation", true));
 
   vault_orient->set_content(std::move(vault_orient_content));
   btn_orient->set_vault(std::move(vault_orient));
@@ -116,8 +118,8 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   col_container->add_child(std::move(btn_orient));
 
   // Botón "Size"
-  auto btn_size = std::make_unique<OptionButton>("Tamaño", "pluma-document-size");
-  set_tooltip(btn_size.get(), "Tamaño de página");
+  auto btn_size = std::make_unique<OptionButton>(horizon::i18n().tr("pluma-writer.ribbon.size"), "pluma-document-size");
+  set_tooltip(btn_size.get(), horizon::i18n().tr("pluma-writer.ribbon.page_size"));
   m_btn_size = btn_size.get();
 
   auto create_size_item = [this](const std::string& name, const std::string& dims, const pluma::PageSize& size_val) {
@@ -139,7 +141,7 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   vault_size_content->set_margin(8);
   vault_size_content->set_size(180, 320);
 
-  auto title_size = std::make_unique<horizon::Label>("Tamaño de Página");
+  auto title_size = std::make_unique<horizon::Label>(horizon::i18n().tr("pluma-writer.page_setup.size_title"));
   title_size->set_font_size(20);
   title_size->set_font_weight(horizon::FONT_WEIGHT_BOLD);
   title_size->set_fixed_size(24);
@@ -147,8 +149,8 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
 
   vault_size_content->add_child(create_size_item("A4", "21 cm x 29.7 cm", pluma::PageSizes::A4));
   vault_size_content->add_child(create_size_item("A5", "14.8 cm x 21 cm", pluma::PageSizes::A5));
-  vault_size_content->add_child(create_size_item("Carta", "21.59 cm x 27.94 cm", pluma::PageSizes::Letter));
-  vault_size_content->add_child(create_size_item("Oficio", "21.59 cm x 35.56 cm", pluma::PageSizes::Legal));
+  vault_size_content->add_child(create_size_item(horizon::i18n().tr("pluma-writer.page_setup.letter"), "21.59 cm x 27.94 cm", pluma::PageSizes::Letter));
+  vault_size_content->add_child(create_size_item(horizon::i18n().tr("pluma-writer.page_setup.legal"), "21.59 cm x 35.56 cm", pluma::PageSizes::Legal));
 
   vault_size->set_content(std::move(vault_size_content));
   btn_size->set_vault(std::move(vault_size));

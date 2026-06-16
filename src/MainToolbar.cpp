@@ -3,6 +3,7 @@
 #include <horizon/Application.hpp>
 #include <horizon/Notification.hpp>
 #include <horizon/SearchBox.hpp>
+#include <horizon/I18n.hpp>
 
 namespace pluma_app {
 
@@ -19,37 +20,37 @@ MainToolbar::MainToolbar() : horizon::Widget() {
 
   auto btn_new = std::make_unique<horizon::ToolbarButton>("", "pluma-filenew");
   btn_new->set_fixed_size(40);
-  set_tooltip(btn_new.get(), "Nuevo");
+  set_tooltip(btn_new.get(), horizon::i18n().tr("pluma-writer.ribbon.new"));
 
   auto btn_open =
       std::make_unique<horizon::ToolbarButton>("", "pluma-fileopen");
   btn_open->set_fixed_size(40);
-  set_tooltip(btn_open.get(), "Abrir");
+  set_tooltip(btn_open.get(), horizon::i18n().tr("pluma-writer.ribbon.open"));
 
   auto btn_save =
       std::make_unique<horizon::ToolbarButton>("", "pluma-filesave");
   btn_save->set_fixed_size(40);
-  set_tooltip(btn_save.get(), "Guardar");
+  set_tooltip(btn_save.get(), horizon::i18n().tr("pluma-writer.ribbon.save"));
 
   auto btn_cut = std::make_unique<horizon::ToolbarButton>("", "pluma-cut");
   btn_cut->set_fixed_size(40);
-  set_tooltip(btn_cut.get(), "Cortar");
+  set_tooltip(btn_cut.get(), horizon::i18n().tr("pluma-writer.ribbon.cut"));
 
   auto btn_copy = std::make_unique<horizon::ToolbarButton>("", "pluma-copy");
   btn_copy->set_fixed_size(40);
-  set_tooltip(btn_copy.get(), "Copiar");
+  set_tooltip(btn_copy.get(), horizon::i18n().tr("pluma-writer.ribbon.copy"));
 
   auto btn_paste = std::make_unique<horizon::ToolbarButton>("", "pluma-paste");
   btn_paste->set_fixed_size(40);
-  set_tooltip(btn_paste.get(), "Pegar");
+  set_tooltip(btn_paste.get(), horizon::i18n().tr("pluma-writer.ribbon.paste"));
 
   auto btn_undo = std::make_unique<horizon::ToolbarButton>("", "pluma-undo");
   btn_undo->set_fixed_size(40);
-  set_tooltip(btn_undo.get(), "Deshacer");
+  set_tooltip(btn_undo.get(), horizon::i18n().tr("pluma-writer.ribbon.undo"));
 
   auto btn_redo = std::make_unique<horizon::ToolbarButton>("", "pluma-redo");
   btn_redo->set_fixed_size(40);
-  set_tooltip(btn_redo.get(), "Rehacer");
+  set_tooltip(btn_redo.get(), horizon::i18n().tr("pluma-writer.ribbon.redo"));
 
   m_btn_new = btn_new.get();
   m_btn_open = btn_open.get();
@@ -117,7 +118,7 @@ MainToolbar::MainToolbar() : horizon::Widget() {
   add_child(horizon::Spacer()); // pushes the search box to the right
   auto search = std::make_unique<horizon::SearchBox>();
   search->set_fixed_size(30);
-  set_tooltip(search.get(), "Buscar");
+  set_tooltip(search.get(), horizon::i18n().tr("pluma-writer.ribbon.search"));
   m_search_box = search.get();
 
   search_container->add_child(horizon::Spacer(5));

@@ -46,6 +46,17 @@ install(FILES pluma-writer.xml
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/mime/packages
 )
 
+install(DIRECTORY locales/
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/horizon/apps/pluma-writer/locales
+)
+
+add_custom_command(TARGET pluma-writer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/locales
+    $<TARGET_FILE_DIR:pluma-writer>/locales
+    COMMENT "Copying app locales to build directory"
+)
+
 install(DIRECTORY assets/icons/scalable/
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable
 )

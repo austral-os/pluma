@@ -10,6 +10,7 @@
 #include <horizon/Toolbar.hpp>
 #include <horizon/Vault.hpp>
 #include <horizon/Widget.hpp>
+#include <horizon/I18n.hpp>
 #include <pluma/Style/StyleProperties.hpp>
 #include <horizon/dialogs/FileDialog.hpp>
 
@@ -95,8 +96,7 @@ private:
 };
 // ── End Table Grid Picker ───────────────────────────────────────────────────
 
-PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::ApplicationWindow("Pluma") {
-  set_title("Pluma Writer");
+PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::ApplicationWindow(horizon::i18n().tr("pluma-writer.title")) {
   set_size(1024, 768);
   show_status_bar();
 
@@ -178,7 +178,7 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
   }
 }
 
-void PlumaWindow::new_file() { create_tab("Sin título"); }
+void PlumaWindow::new_file() { create_tab(horizon::i18n().tr("pluma-writer.status.untitled")); }
 
 void PlumaWindow::create_tab(const std::string &title,
                              const std::string &path) {
@@ -189,15 +189,15 @@ void PlumaWindow::create_tab(const std::string &title,
   auto ribbon = std::make_unique<horizon::RibbonToolbar>();
   ribbon->set_fixed_size(135);
 
-  int t1 = ribbon->add_tab("Home");
+  int t1 = ribbon->add_tab(horizon::i18n().tr("pluma-writer.tabs.home"));
   auto home_sec = std::make_unique<HomeSection>(ribbon.get(), t1);
   m_home_sections.push_back(std::move(home_sec));
 
-  int t2 = ribbon->add_tab("Page Layout");
+  int t2 = ribbon->add_tab(horizon::i18n().tr("pluma-writer.tabs.page_layout"));
   auto layout_sec = std::make_unique<PageLayoutSection>(ribbon.get(), t2);
   m_page_layout_sections.push_back(std::move(layout_sec));
 
-  int t3 = ribbon->add_tab("Image");
+  int t3 = ribbon->add_tab(horizon::i18n().tr("pluma-writer.tabs.image_format"));
   auto image_sec = std::make_unique<ImageFormatSection>(ribbon.get(), t3);
   m_image_format_sections.push_back(std::move(image_sec));
   ribbon->set_tab_visible(t3, false);
@@ -439,7 +439,7 @@ void PlumaWindow::create_tab(const std::string &title,
       [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &ctx) {
         LOG_INFO << "Image button pressed!";
         if (view_ptr && view_ptr->editor()) {
-          m_file_dialog = std::make_unique<horizon::FileDialog>(horizon::FileDialogMode::Open, "Insert Image");
+          m_file_dialog = std::make_unique<horizon::FileDialog>(horizon::FileDialogMode::Open, horizon::i18n().tr("pluma-writer.dialogs.insert_image_title"));
           m_file_dialog->when_accepted.connect([this, view_ptr](horizon::FileDialogAcceptedContext& ctx_acc) {
             auto editor = view_ptr->editor();
             std::string img_tag = "\n|IMAGE:" + ctx_acc.selected_path + "|\n";
@@ -474,7 +474,7 @@ void PlumaWindow::create_tab(const std::string &title,
         content->set_spacing(6);
 
         // Title label
-        auto title = std::make_unique<horizon::Label>("Insertar tabla");
+        auto title = std::make_unique<horizon::Label>(horizon::i18n().tr("pluma-writer.ribbon.table"));
         title->set_fixed_size(24);
         content->add_child(std::move(title));
 
@@ -814,7 +814,7 @@ void PlumaWindow::create_tab(const std::string &title,
           content->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
           content->set_spacing(8);
 
-          auto title = std::make_unique<horizon::Label>("Text Color");
+          auto title = std::make_unique<horizon::Label>(horizon::i18n().tr("pluma-writer.ribbon.text-color"));
           title->set_fixed_size(30);
           content->add_child(std::move(title));
 
@@ -885,7 +885,7 @@ void PlumaWindow::create_tab(const std::string &title,
           content->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
           content->set_spacing(8);
 
-          auto title = std::make_unique<horizon::Label>("Background Color");
+          auto title = std::make_unique<horizon::Label>(horizon::i18n().tr("pluma-writer.ribbon.bg-color"));
           title->set_fixed_size(30);
           content->add_child(std::move(title));
 
@@ -1013,7 +1013,8 @@ void PlumaWindow::setup_events() {
 void PlumaWindow::update_status_bar() {
   auto *view = get_current_view();
   if (!view || !view->editor()) {
-    set_status_text("Ln 1, Col 1 | Total: 1");
+    std::string text = horizon::i18n().tr("pluma-writer.status.line") + " 1, " + horizon::i18n().tr("pluma-writer.status.col") + " 1 | " + horizon::i18n().tr("pluma-writer.status.total") + ": 1";
+    set_status_text(text);
     return;
   }
 
@@ -1038,9 +1039,11 @@ void PlumaWindow::update_status_bar() {
       total_lines++;
   }
 
-  char buf[128];
-  snprintf(buf, sizeof(buf), "Ln %d, Col %d | Total: %d", line, col,
-           total_lines);
+  char buf[256];
+  snprintf(buf, sizeof(buf), "%s %d, %s %d | %s: %d", 
+           horizon::i18n().tr("pluma-writer.status.line").c_str(), line, 
+           horizon::i18n().tr("pluma-writer.status.col").c_str(), col,
+           horizon::i18n().tr("pluma-writer.status.total").c_str(), total_lines);
   set_status_text(buf);
 }
 
