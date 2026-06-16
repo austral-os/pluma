@@ -154,7 +154,11 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
   m_tabs->when_tab_selected.connect([this](int index) { 
     this->update_status_bar(); 
     if (index >= 0 && index < (int)this->m_home_sections.size()) {
-      this->update_ribbon_state(this->get_current_view(), this->m_home_sections[index].get());
+      auto* view = this->get_current_view();
+      this->update_ribbon_state(view, this->m_home_sections[index].get());
+      if (view) {
+        view->set_focus(true);
+      }
     }
   });
 

@@ -8,6 +8,7 @@
 
 #include <horizon/ThemeManager.hpp>
 #include <horizon/WaylandWindow.hpp>
+#include <horizon/Menu.hpp>
 
 namespace pluma_app {
 
@@ -107,6 +108,11 @@ PlumaView::PlumaView() : horizon::Widget() {
 
   set_background_color(horizon::Color(0.8f, 0.8f, 0.8f, 1.0f));
   set_focusable(true);
+  set_context_menu(std::make_unique<horizon::Menu>());
+
+  when_application_load.connect([this](horizon::EventContext &) {
+    set_focus(true);
+  });
 
   when_mouse_press.connect([this](horizon::MouseButtonEventContext &ctx) {
     if (application()) {
@@ -125,14 +131,37 @@ PlumaView::PlumaView() : horizon::Widget() {
       pluma::MouseButton pbtn = pluma::MouseButton::None;
       if (ctx.button == 272 || ctx.button == 1)
         pbtn = pluma::MouseButton::Left;
-      else if (ctx.button == 273 || ctx.button == 2)
-        pbtn = pluma::MouseButton::Right;
       else if (ctx.button == 274 || ctx.button == 3)
         pbtn = pluma::MouseButton::Middle;
 
-      m_editor->onMouseDown(local_x, local_y, pbtn,
+      if (pbtn != pluma::MouseButton::None) {
+          m_editor->onMouseDown(local_x, local_y, pbtn,
+                                static_cast<pluma::ModifierFlags>(ctx.modifiers));
+          invalidate();
+      }
+    }
+  });
+
+  when_right_click.connect([this](horizon::MouseButtonEventContext &ctx) {
+    if (application()) {
+      application()->set_focused_widget(this);
+    }
+
+    double local_x = ctx.x - x();
+    double local_y = ctx.y - y();
+
+    if (local_x > width() - 20 || local_y > height() - 20) {
+      return;
+    }
+
+    if (m_editor) {
+      if (m_editor->getSelectionRange().isCollapsed()) {
+        m_editor->onMouseDown(local_x, local_y, pluma::MouseButton::Right,
+                              static_cast<pluma::ModifierFlags>(ctx.modifiers));
+        m_editor->onMouseUp(local_x, local_y, pluma::MouseButton::Right,
                             static_cast<pluma::ModifierFlags>(ctx.modifiers));
-      invalidate();
+        invalidate();
+      }
     }
   });
 
@@ -405,6 +434,8 @@ void PlumaView::perform(horizon::ClipboardAction action) {
             if (application()) application()->request_clipboard_data(this);
             break;
     }
+    
+    set_focus(true);
 }
 
 void PlumaView::provide_clipboard_data(const std::string &mime, horizon::DataSink &sink) {
@@ -429,6 +460,8 @@ void PlumaView::on_clipboard_data_received(const std::string &mime, const std::v
             }
         }
     }
+    
+    set_focus(true);
 }
 
 } // namespace pluma_app
