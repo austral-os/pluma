@@ -6,6 +6,7 @@
 #include <horizon/EventsManager.hpp>
 #include <pluma/Layout/PageSize.hpp>
 #include "Widgets/OptionButton.hpp"
+#include "Widgets/SizeButton.hpp"
 
 namespace pluma_app {
 
@@ -20,6 +21,7 @@ public:
 
   horizon::EventsManager<pluma::PageMargins> when_margin_selected;
   horizon::EventsManager<bool> when_orientation_selected;
+  horizon::EventsManager<pluma::PageSize> when_size_selected;
 
 private:
   horizon::RibbonSection *m_section_setup = nullptr;

@@ -234,6 +234,27 @@ void PlumaWindow::create_tab(const std::string &title,
         }
       });
 
+  m_page_layout_sections.back()->when_size_selected.connect(
+      [this, view_ptr = raw_view_ptr](pluma::PageSize &new_size) {
+        if (view_ptr && view_ptr->editor()) {
+          auto current_size = view_ptr->editor()->getPageSize();
+          bool currently_landscape = current_size.width.getValue() > current_size.height.getValue();
+          
+          pluma::PageSize final_size = new_size;
+          if (currently_landscape) {
+             final_size = {new_size.height, new_size.width}; // Maintain landscape orientation
+          }
+
+          view_ptr->editor()->setPageSize(final_size);
+          view_ptr->calculate_layout();
+          view_ptr->invalidate();
+          if (view_ptr->parent()) {
+            view_ptr->parent()->calculate_layout();
+            view_ptr->parent()->invalidate();
+          }
+        }
+      });
+
   if (!path.empty()) {
     pluma_view->load_document(path);
     pluma_view->set_current_path(path);

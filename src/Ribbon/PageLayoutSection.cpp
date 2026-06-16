@@ -15,7 +15,7 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   m_section_setup = ribbon->add_section(tab_index, "Page Setup");
 
   auto btn_margins =
-      std::make_unique<horizon::ToolbarButton>("Margins", "pluma-margins");
+      std::make_unique<horizon::ToolbarButton>("Margins", "pluma-margin");
   btn_margins->set_size(64, 64);
   btn_margins->set_icon_size(32);
   btn_margins->set_fixed_size(64);
@@ -115,9 +115,43 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   col_container->add_child(std::move(btn_orient));
 
   // Botón "Size"
-  auto btn_size = std::make_unique<OptionButton>("Tamaño", "pluma-size");
+  auto btn_size = std::make_unique<OptionButton>("Tamaño", "pluma-document-size");
   set_tooltip(btn_size.get(), "Tamaño de página");
   m_btn_size = btn_size.get();
+
+  auto create_size_item = [this](const std::string& name, const std::string& dims, const pluma::PageSize& size_val) {
+      auto btn = std::make_unique<SizeButton>(name, dims, size_val);
+      btn->when_click.connect([this, size_val](auto&) {
+          pluma::PageSize size = size_val;
+          when_size_selected.run(size);
+          if (m_btn_size && m_btn_size->application()) {
+              m_btn_size->application()->close_vault();
+          }
+      });
+      return btn;
+  };
+
+  auto vault_size = std::make_unique<horizon::Vault>();
+  auto vault_size_content = std::make_unique<horizon::Widget>();
+  vault_size_content->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+  vault_size_content->set_spacing(4);
+  vault_size_content->set_margin(8);
+  vault_size_content->set_size(180, 320);
+
+  auto title_size = std::make_unique<horizon::Label>("Tamaño de Página");
+  title_size->set_font_size(20);
+  title_size->set_font_weight(horizon::FONT_WEIGHT_BOLD);
+  title_size->set_fixed_size(24);
+  vault_size_content->add_child(std::move(title_size));
+
+  vault_size_content->add_child(create_size_item("A4", "21 cm x 29.7 cm", pluma::PageSizes::A4));
+  vault_size_content->add_child(create_size_item("A5", "14.8 cm x 21 cm", pluma::PageSizes::A5));
+  vault_size_content->add_child(create_size_item("Carta", "21.59 cm x 27.94 cm", pluma::PageSizes::Letter));
+  vault_size_content->add_child(create_size_item("Oficio", "21.59 cm x 35.56 cm", pluma::PageSizes::Legal));
+
+  vault_size->set_content(std::move(vault_size_content));
+  btn_size->set_vault(std::move(vault_size));
+
   col_container->add_child(std::move(btn_size));
 
   col_wrapper->add_child(std::move(col_container));
