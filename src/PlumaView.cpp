@@ -209,7 +209,7 @@ PlumaView::PlumaView() : horizon::Widget() {
       if (ctx.keysym == 0xff0d || ctx.keysym == 0xff8d) { // Return or KP_Enter
         m_editor->onTextInput("\n");
         handled = true;
-      } else if (!ctx.text.empty()) {
+      } else if (!ctx.text.empty() && !(ctx.modifiers & (horizon::WaylandWindow::Modifier::CTRL | horizon::WaylandWindow::Modifier::ALT))) {
         std::string text = ctx.text;
         if (text == "\r")
           text = "\n";
