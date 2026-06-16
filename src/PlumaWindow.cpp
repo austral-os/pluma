@@ -197,6 +197,11 @@ void PlumaWindow::create_tab(const std::string &title,
   auto layout_sec = std::make_unique<PageLayoutSection>(ribbon.get(), t2);
   m_page_layout_sections.push_back(std::move(layout_sec));
 
+  int t3 = ribbon->add_tab("Image");
+  auto image_sec = std::make_unique<ImageFormatSection>(ribbon.get(), t3);
+  m_image_format_sections.push_back(std::move(image_sec));
+  ribbon->set_tab_visible(t3, false);
+
   tab_container->add_child(std::move(ribbon));
 
   auto scroll_area = std::make_unique<horizon::ScrollArea>();
@@ -255,17 +260,31 @@ void PlumaWindow::create_tab(const std::string &title,
         }
       });
 
+  m_image_format_sections.back()->when_wrap_mode_selected.connect(
+      [this, view_ptr = raw_view_ptr](pluma::TextWrapMode mode) {
+        if (view_ptr && view_ptr->editor()) {
+          uint32_t offset = view_ptr->editor()->getCursorOffset();
+          view_ptr->editor()->applyStyle(offset, 1, pluma::PropertyId::ImageWrapMode, mode);
+        }
+      });
+
   if (!path.empty()) {
     pluma_view->load_document(path);
     pluma_view->set_current_path(path);
   }
 
   auto raw_home_ptr = m_home_sections.back().get();
+  horizon::RibbonToolbar* ribbon_ptr = static_cast<horizon::RibbonToolbar*>(tab_container->children()[0].get());
+  
   pluma_view->editor()->setCursorStateCallback(
-      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr](const pluma::CursorState &) {
+      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr, rbb_ptr = ribbon_ptr, img_tab = t3](const pluma::CursorState &state) {
         if (this->get_current_view() == view_ptr) {
           this->update_status_bar();
           this->update_ribbon_state(view_ptr, home_ptr);
+          bool is_image = (state.object_type == pluma::CursorObjectType::Image);
+          if (rbb_ptr) {
+              rbb_ptr->set_tab_visible(img_tab, is_image);
+          }
         }
       });
 

@@ -5,6 +5,7 @@
 #include "PlumaView.hpp"
 #include "Ribbon/HomeSection.hpp"
 #include "Ribbon/PageLayoutSection.hpp"
+#include "Ribbon/ImageFormatSection.hpp"
 #include <memory>
 #include <string>
 #include <vector>
@@ -31,6 +32,7 @@ private:
     horizon::TabCollection* m_tabs = nullptr;
     std::vector<std::unique_ptr<HomeSection>> m_home_sections;
     std::vector<std::unique_ptr<PageLayoutSection>> m_page_layout_sections;
+    std::vector<std::unique_ptr<ImageFormatSection>> m_image_format_sections;
     std::unique_ptr<horizon::FileDialog> m_file_dialog;
 };
 
