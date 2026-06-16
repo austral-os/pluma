@@ -19,6 +19,7 @@ public:
   OptionButton* btn_size() const { return m_btn_size; }
 
   horizon::EventsManager<pluma::PageMargins> when_margin_selected;
+  horizon::EventsManager<bool> when_orientation_selected;
 
 private:
   horizon::RibbonSection *m_section_setup = nullptr;

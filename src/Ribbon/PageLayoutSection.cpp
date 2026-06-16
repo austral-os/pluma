@@ -80,6 +80,38 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   auto btn_orient = std::make_unique<OptionButton>("Orientación", "pluma-orientation");
   set_tooltip(btn_orient.get(), "Orientación de página");
   m_btn_orientation = btn_orient.get();
+
+  auto create_orient_item = [this](const std::string& name, const std::string& icon_name, bool landscape) {
+      auto btn = std::make_unique<OptionButton>(name, icon_name);
+      btn->when_click.connect([this, landscape](auto&) {
+          bool landscape_val = landscape;
+          when_orientation_selected.run(landscape_val);
+          if (m_btn_orientation && m_btn_orientation->application()) {
+              m_btn_orientation->application()->close_vault();
+          }
+      });
+      return btn;
+  };
+
+  auto vault_orient = std::make_unique<horizon::Vault>();
+  auto vault_orient_content = std::make_unique<horizon::Widget>();
+  vault_orient_content->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+  vault_orient_content->set_spacing(4);
+  vault_orient_content->set_margin(8);
+  vault_orient_content->set_size(160, 100);
+
+  auto title_orient = std::make_unique<horizon::Label>("Orientación");
+  title_orient->set_font_size(20);
+  title_orient->set_font_weight(horizon::FONT_WEIGHT_BOLD);
+  title_orient->set_fixed_size(24);
+  vault_orient_content->add_child(std::move(title_orient));
+
+  vault_orient_content->add_child(create_orient_item("Vertical", "pluma-orientation", false));
+  vault_orient_content->add_child(create_orient_item("Horizontal", "pluma-orientation", true));
+
+  vault_orient->set_content(std::move(vault_orient_content));
+  btn_orient->set_vault(std::move(vault_orient));
+
   col_container->add_child(std::move(btn_orient));
 
   // Botón "Size"
