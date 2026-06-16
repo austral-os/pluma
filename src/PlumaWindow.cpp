@@ -278,13 +278,17 @@ void PlumaWindow::create_tab(const std::string &title,
   horizon::RibbonToolbar* ribbon_ptr = static_cast<horizon::RibbonToolbar*>(tab_container->children()[0].get());
   
   pluma_view->editor()->setCursorStateCallback(
-      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr, img_sec_ptr = raw_img_sec_ptr, rbb_ptr = ribbon_ptr, img_tab = t3](const pluma::CursorState &state) {
+      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr, img_sec_ptr = raw_img_sec_ptr, rbb_ptr = ribbon_ptr, img_tab = t3, last_was_image = std::make_shared<bool>(false)](const pluma::CursorState &state) {
         if (this->get_current_view() == view_ptr) {
           this->update_status_bar();
           this->update_ribbon_state(view_ptr, home_ptr);
           bool is_image = (state.object_type == pluma::CursorObjectType::Image);
           if (rbb_ptr) {
               rbb_ptr->set_tab_visible(img_tab, is_image);
+              if (is_image && !(*last_was_image)) {
+                  rbb_ptr->set_active_tab(img_tab);
+              }
+              *last_was_image = is_image;
           }
           if (is_image && img_sec_ptr) {
               auto bag = view_ptr->editor()->getFormatRegistry().getStyleAt(state.logical_offset);
