@@ -19,16 +19,15 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   btn_margins->set_icon_size(32);
   btn_margins->set_fixed_size(64);
   
+  auto app = ribbon->application();
 
-  auto create_margin_item = [this](const std::string& name, const std::string& dims, int t, int b, int l, int r) {
+  auto create_margin_item = [this, app](const std::string& name, const std::string& dims, int t, int b, int l, int r) {
       auto btn = std::make_unique<MarginButton>(name, dims, t, b, l, r);
 
-      btn->when_click.connect([this, m = btn->get_margins()](auto&) {
+      btn->when_click.connect([this, m = btn->get_margins(), app](auto&) {
           pluma::PageMargins margins = m;
           when_margin_selected.run(margins);
-          if (m_btn_margins && m_btn_margins->application()) {
-              m_btn_margins->application()->close_vault();
-          }
+          app->close_vault();
       });
 
       return btn;

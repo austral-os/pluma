@@ -1,0 +1,10 @@
+--- src/Ribbon/PageLayoutSection.cpp
++++ src/Ribbon/PageLayoutSection.cpp
+@@ -25,6 +25,7 @@
+         auto btn = std::make_unique<MarginButton>(name, dims, t, b, l, r);
+ 
+         btn->when_click.connect([this, m = btn->get_margins(), app](auto&) {
++            printf("CLICK DETECTED!\n");
+             pluma::PageMargins margins = m;
+             when_margin_selected.run(margins);
+             app->close_vault();
