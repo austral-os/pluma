@@ -77,7 +77,7 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   col_container->set_spacing(4);
 
   // Botón "Orientation"
-  auto btn_orient = std::make_unique<OptionButton>("Orientación", "pluma-orientation");
+  auto btn_orient = std::make_unique<OptionButton>("Orientación", "pluma-page-setup");
   set_tooltip(btn_orient.get(), "Orientación de página");
   m_btn_orientation = btn_orient.get();
 
