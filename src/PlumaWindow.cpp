@@ -142,6 +142,7 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
     m_tabs->remove_tab(index);
     if (index >= 0 && index < m_home_sections.size()) {
       m_home_sections.erase(m_home_sections.begin() + index);
+      m_page_layout_sections.erase(m_page_layout_sections.begin() + index);
     }
     if (m_tabs->tab_count() == 0) {
       new_file();
@@ -192,12 +193,29 @@ void PlumaWindow::create_tab(const std::string &title,
   auto home_sec = std::make_unique<HomeSection>(ribbon.get(), t1);
   m_home_sections.push_back(std::move(home_sec));
 
+  int t2 = ribbon->add_tab("Page Layout");
+  auto layout_sec = std::make_unique<PageLayoutSection>(ribbon.get(), t2);
+  m_page_layout_sections.push_back(std::move(layout_sec));
+
   tab_container->add_child(std::move(ribbon));
 
   auto scroll_area = std::make_unique<horizon::ScrollArea>();
   auto pluma_view = std::make_unique<PlumaView>();
 
   PlumaView *raw_view_ptr = pluma_view.get();
+
+  m_page_layout_sections.back()->when_margin_selected.connect(
+      [this, view_ptr = raw_view_ptr](pluma::PageMargins &margins) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->setMargins(margins);
+          view_ptr->calculate_layout();
+          view_ptr->invalidate();
+          if (view_ptr->parent()) {
+            view_ptr->parent()->calculate_layout();
+            view_ptr->parent()->invalidate();
+          }
+        }
+      });
 
   if (!path.empty()) {
     pluma_view->load_document(path);
