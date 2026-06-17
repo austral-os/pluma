@@ -202,6 +202,11 @@ void PlumaWindow::create_tab(const std::string &title,
   m_image_format_sections.push_back(std::move(image_sec));
   ribbon->set_tab_visible(t3, false);
 
+  int t4 = ribbon->add_tab("Table Layout");
+  auto table_sec = std::make_unique<TableLayoutSection>(ribbon.get(), t4);
+  m_table_layout_sections.push_back(std::move(table_sec));
+  ribbon->set_tab_visible(t4, false);
+
   tab_container->add_child(std::move(ribbon));
 
   auto scroll_area = std::make_unique<horizon::ScrollArea>();
@@ -268,6 +273,38 @@ void PlumaWindow::create_tab(const std::string &title,
         }
       });
 
+  m_table_layout_sections.back()->when_insert_above_clicked.connect(
+      [this, view_ptr = raw_view_ptr](int&) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->insertTableRowAbove();
+          view_ptr->calculate_layout();
+        }
+      });
+      
+  m_table_layout_sections.back()->when_insert_below_clicked.connect(
+      [this, view_ptr = raw_view_ptr](int&) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->insertTableRowBelow();
+          view_ptr->calculate_layout();
+        }
+      });
+
+  m_table_layout_sections.back()->when_insert_left_clicked.connect(
+      [this, view_ptr = raw_view_ptr](int&) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->insertTableColumnLeft();
+          view_ptr->calculate_layout();
+        }
+      });
+
+  m_table_layout_sections.back()->when_insert_right_clicked.connect(
+      [this, view_ptr = raw_view_ptr](int&) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->insertTableColumnRight();
+          view_ptr->calculate_layout();
+        }
+      });
+
   if (!path.empty()) {
     pluma_view->load_document(path);
     pluma_view->set_current_path(path);
@@ -275,20 +312,33 @@ void PlumaWindow::create_tab(const std::string &title,
 
   auto raw_home_ptr = m_home_sections.back().get();
   auto raw_img_sec_ptr = m_image_format_sections.back().get();
+  auto raw_tbl_sec_ptr = m_table_layout_sections.back().get();
   horizon::RibbonToolbar* ribbon_ptr = static_cast<horizon::RibbonToolbar*>(tab_container->children()[0].get());
   
   pluma_view->editor()->setCursorStateCallback(
-      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr, img_sec_ptr = raw_img_sec_ptr, rbb_ptr = ribbon_ptr, img_tab = t3, last_was_image = std::make_shared<bool>(false)](const pluma::CursorState &state) {
+      [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr, img_sec_ptr = raw_img_sec_ptr, tbl_sec_ptr = raw_tbl_sec_ptr, rbb_ptr = ribbon_ptr, img_tab = t3, tbl_tab = t4, last_was_image = std::make_shared<bool>(false), last_was_table = std::make_shared<bool>(false)](const pluma::CursorState &state) {
         if (this->get_current_view() == view_ptr) {
           this->update_status_bar();
           this->update_ribbon_state(view_ptr, home_ptr);
+          
           bool is_image = (state.object_type == pluma::CursorObjectType::Image);
+          bool is_table = (state.object_type == pluma::CursorObjectType::Table || 
+                           state.object_type == pluma::CursorObjectType::TableCell ||
+                           state.object_type == pluma::CursorObjectType::TableRow ||
+                           state.object_type == pluma::CursorObjectType::TableColumn);
+
           if (rbb_ptr) {
               rbb_ptr->set_tab_visible(img_tab, is_image);
               if (is_image && !(*last_was_image)) {
                   rbb_ptr->set_active_tab(img_tab);
               }
               *last_was_image = is_image;
+
+              rbb_ptr->set_tab_visible(tbl_tab, is_table);
+              if (is_table && !(*last_was_table)) {
+                  rbb_ptr->set_active_tab(tbl_tab);
+              }
+              *last_was_table = is_table;
           }
           if (is_image && img_sec_ptr) {
               auto bag = view_ptr->editor()->getFormatRegistry().getStyleAt(state.logical_offset);
