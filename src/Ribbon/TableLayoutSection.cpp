@@ -34,6 +34,23 @@ TableLayoutSection::TableLayoutSection(horizon::RibbonToolbar *ribbon, int tab_i
   m_btn_insert_right->when_click.connect([this](auto&) { int dummy = 0; when_insert_right_clicked.run(dummy); });
 
   m_section_rows_cols->add_widget(std::move(wrap_container));
+
+  m_section_merge = ribbon->add_section(tab_index, "Merge");
+
+  auto merge_container = std::make_unique<horizon::Widget>();
+  merge_container->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
+  merge_container->set_spacing(4);
+  merge_container->set_fixed_size(210); // 3 buttons of 64 + spacing
+
+  merge_container->add_child(create_button("Merge Cells", "pluma-tbl-merge-cells", m_btn_merge_cells));
+  merge_container->add_child(create_button("Split Cells", "pluma-tbl-split-cells", m_btn_split_cells));
+  merge_container->add_child(create_button("Split Table", "pluma-tbl-split", m_btn_split_table));
+
+  m_btn_merge_cells->when_click.connect([this](auto&) { int dummy = 0; when_merge_cells_clicked.run(dummy); });
+  m_btn_split_cells->when_click.connect([this](auto&) { int dummy = 0; when_split_cells_clicked.run(dummy); });
+  m_btn_split_table->when_click.connect([this](auto&) { int dummy = 0; when_split_table_clicked.run(dummy); });
+
+  m_section_merge->add_widget(std::move(merge_container));
 }
 
 } // namespace pluma_app
