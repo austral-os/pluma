@@ -305,6 +305,14 @@ void PlumaWindow::create_tab(const std::string &title,
         }
       });
 
+  m_table_layout_sections.back()->when_merge_cells_clicked.connect(
+      [this, view_ptr = raw_view_ptr](int&) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->mergeTableCells();
+          view_ptr->calculate_layout();
+        }
+      });
+
   if (!path.empty()) {
     pluma_view->load_document(path);
     pluma_view->set_current_path(path);
