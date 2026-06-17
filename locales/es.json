@@ -87,6 +87,11 @@
             "undo": "Deshacer",
             "redo": "Rehacer",
             "search": "Buscar"
+        },
+        "table": {
+            "split_cells": "Dividir celdas",
+            "split_horizontally": "Dividir horizontalmente",
+            "split_vertically": "Dividir verticalmente"
         }
     }
 }

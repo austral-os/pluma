@@ -16,7 +16,8 @@ public:
   horizon::EventsManager<int> when_insert_right_clicked;
 
   horizon::EventsManager<int> when_merge_cells_clicked;
-  horizon::EventsManager<int> when_split_cells_clicked;
+  horizon::EventsManager<int> when_split_cells_horizontally_clicked;
+  horizon::EventsManager<int> when_split_cells_vertically_clicked;
   horizon::EventsManager<int> when_split_table_clicked;
 
 private:

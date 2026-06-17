@@ -87,6 +87,11 @@
             "undo": "Undo",
             "redo": "Redo",
             "search": "Search"
+        },
+        "table": {
+            "split_cells": "Split Cells",
+            "split_horizontally": "Split Horizontally",
+            "split_vertically": "Split Vertically"
         }
     }
 }
