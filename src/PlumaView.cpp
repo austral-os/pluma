@@ -289,6 +289,7 @@ void PlumaView::set_application_recursive(horizon::WaylandWindow *app) {
 }
 
 void PlumaView::draw(horizon::GraphicsContext &ctx) {
+  if (m_is_printing) return;
   if (!m_editor)
     return;
 
@@ -336,6 +337,7 @@ void PlumaView::draw(horizon::GraphicsContext &ctx) {
 }
 
 void PlumaView::calculate_layout() {
+  if (m_is_printing) return;
   horizon::Widget::calculate_layout();
 
   int doc_w = 800;
@@ -480,8 +482,12 @@ horizon::print::PrintDocument PlumaView::generate_print_document(const horizon::
 
     std::string temp_path(temp_template);
 
+    m_is_printing = true;
     pluma::plugins::PdfExporter exporter;
-    if (exporter.exportToFile(temp_path, *m_editor)) {
+    bool success = exporter.exportToFile(temp_path, *m_editor);
+    m_is_printing = false;
+
+    if (success) {
         std::ifstream file(temp_path, std::ios::binary);
         if (file) {
             file.seekg(0, std::ios::end);

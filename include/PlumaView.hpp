@@ -1,3 +1,4 @@
+#include <atomic>
 #pragma once
 
 #include <horizon/Widget.hpp>
@@ -53,6 +54,7 @@ private:
     std::string m_current_path;
     std::string m_clipboard_buffer;
     size_t m_blink_timer_id{0};
+    std::atomic<bool> m_is_printing{false};
 };
 
 } // namespace pluma_app
