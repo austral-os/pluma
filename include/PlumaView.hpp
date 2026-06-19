@@ -2,6 +2,7 @@
 
 #include <horizon/Widget.hpp>
 #include <pluma/PlumaEditor.hpp>
+#include <horizon/print/Models.h>
 #include <memory>
 
 namespace pluma_app {
@@ -35,6 +36,10 @@ public:
 
     // Undo/Redo Support
     bool supports_undo() const override { return true; }
+
+    // Print Support
+    bool supports_printing() const override { return true; }
+    horizon::print::PrintDocument generate_print_document(const horizon::print::PrintConfig& config) override;
 
     const std::string& current_path() const { return m_current_path; }
     void set_current_path(const std::string& path) { m_current_path = path; }

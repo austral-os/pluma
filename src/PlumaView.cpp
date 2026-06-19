@@ -9,6 +9,8 @@
 #include <horizon/ThemeManager.hpp>
 #include <horizon/WaylandWindow.hpp>
 #include <horizon/Menu.hpp>
+#include <fstream>
+#include <unistd.h>
 
 namespace pluma_app {
 
@@ -462,6 +464,41 @@ void PlumaView::on_clipboard_data_received(const std::string &mime, const std::v
     }
     
     set_focus(true);
+}
+
+horizon::print::PrintDocument PlumaView::generate_print_document(const horizon::print::PrintConfig& config) {
+    horizon::print::PrintDocument doc;
+    doc.mime_type = "application/pdf";
+    doc.title = "Pluma Document";
+
+    if (!m_editor) return doc;
+
+    char temp_template[] = "/tmp/pluma_print_XXXXXX.pdf";
+    int fd = mkstemps(temp_template, 4);
+    if (fd == -1) return doc;
+    close(fd);
+
+    std::string temp_path(temp_template);
+
+    pluma::plugins::PdfExporter exporter;
+    if (exporter.exportToFile(temp_path, *m_editor)) {
+        std::ifstream file(temp_path, std::ios::binary);
+        if (file) {
+            file.seekg(0, std::ios::end);
+            std::streamsize size = file.tellg();
+            file.seekg(0, std::ios::beg);
+
+            if (size > 0) {
+                doc.data.resize(size);
+                if (!file.read(reinterpret_cast<char*>(doc.data.data()), size)) {
+                    doc.data.clear();
+                }
+            }
+        }
+    }
+
+    unlink(temp_path.c_str());
+    return doc;
 }
 
 } // namespace pluma_app
