@@ -2,7 +2,7 @@
 #include <horizon/ToolbarButton.hpp>
 #include <horizon/Widget.hpp>
 #include <horizon/I18n.hpp>
-#include "Widgets/PlumaToolbarButton.hpp"
+#include <horizon/RibbonButton.hpp>
 #include <horizon/Vault.hpp>
 #include <horizon/Label.hpp>
 #include <horizon/Spacer.hpp>
@@ -18,11 +18,11 @@ TableLayoutSection::TableLayoutSection(horizon::RibbonToolbar *ribbon, int tab_i
   wrap_container->set_spacing(4);
   wrap_container->set_fixed_size(280);
 
-  auto create_button = [this](const std::string& name, const std::string& icon_name, class PlumaToolbarButton*& btn_ptr) {
-      auto btn = std::make_unique<PlumaToolbarButton>(name, icon_name);
-      btn->set_size(64, 64);
-      btn->set_icon_size(32);
-      btn->set_fixed_size(64);
+  auto create_button = [this](const std::string& name, const std::string& icon_name, horizon::RibbonButton*& btn_ptr) {
+      auto btn = std::make_unique<horizon::RibbonButton>();
+      btn->set_text(name);
+      btn->set_icon(icon_name);
+      btn->set_button_size(horizon::RibbonButtonSize::Large);
       btn_ptr = btn.get();
       return btn;
   };

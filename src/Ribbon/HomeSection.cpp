@@ -200,11 +200,10 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
 
   m_section_insert = ribbon->add_section(tab_index, horizon::i18n().tr("pluma-writer.ribbon.insert"));
 
-  auto btn_image =
-      std::make_unique<horizon::ToolbarButton>(horizon::i18n().tr("pluma-writer.ribbon.image"), "pluma-insert-image");
-  btn_image->set_size(64, 64);
-  btn_image->set_icon_size(32);
-  btn_image->set_fixed_size(64);
+  auto btn_image = std::make_unique<horizon::RibbonButton>();
+  btn_image->set_text(horizon::i18n().tr("pluma-writer.ribbon.image"));
+  btn_image->set_icon("pluma-insert-image");
+  btn_image->set_button_size(horizon::RibbonButtonSize::Large);
   set_tooltip(btn_image.get(), horizon::i18n().tr("pluma-writer.ribbon.image"));
   m_btn_image = btn_image.get();
   m_section_insert->add_widget(std::move(btn_image));
@@ -215,18 +214,16 @@ HomeSection::HomeSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   // col_container_insert->set_size(80, 64);
   col_container_insert->set_fixed_size(50);
 
-  auto btn_table =
-      std::make_unique<horizon::ToolbarButton>("", "pluma-insert-table");
-  btn_table->set_icon_size(24);
-  btn_table->set_fixed_size(36);
+  auto btn_table = std::make_unique<horizon::RibbonButton>();
+  btn_table->set_icon("pluma-insert-table");
+  btn_table->set_button_size(horizon::RibbonButtonSize::Small);
   set_tooltip(btn_table.get(), horizon::i18n().tr("pluma-writer.ribbon.table"));
   m_btn_table = btn_table.get();
   col_container_insert->add_child(std::move(btn_table));
 
-  auto btn_shape =
-      std::make_unique<horizon::ToolbarButton>("", "pluma-draw-brush");
-  btn_shape->set_icon_size(24);
-  btn_shape->set_fixed_size(36);
+  auto btn_shape = std::make_unique<horizon::RibbonButton>();
+  btn_shape->set_icon("pluma-draw-brush");
+  btn_shape->set_button_size(horizon::RibbonButtonSize::Small);
   set_tooltip(btn_shape.get(), horizon::i18n().tr("pluma-writer.ribbon.shape"));
   m_btn_shape = btn_shape.get();
   col_container_insert->add_child(std::move(btn_shape));

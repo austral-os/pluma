@@ -4,7 +4,7 @@
 #include <horizon/Combo.hpp>
 #include <horizon/GroupButton.hpp>
 #include <horizon/Label.hpp>
-#include <horizon/ToolbarButton.hpp>
+#include <horizon/RibbonButton.hpp>
 #include "MultiToggleGroupButton.hpp"
 
 namespace pluma_app {
@@ -24,9 +24,9 @@ public:
   horizon::GroupButton* group_indent() const { return m_group_indent; }
   MultiToggleGroupButton* group_alignment() const { return m_group_alignment; }
 
-  horizon::ToolbarButton* btn_image() const { return m_btn_image; }
-  horizon::ToolbarButton* btn_table() const { return m_btn_table; }
-  horizon::ToolbarButton* btn_shape() const { return m_btn_shape; }
+  horizon::RibbonButton* btn_image() const { return m_btn_image; }
+  horizon::RibbonButton* btn_table() const { return m_btn_table; }
+  horizon::RibbonButton* btn_shape() const { return m_btn_shape; }
 
 private:
   horizon::RibbonSection *m_section_font = nullptr;
@@ -42,9 +42,9 @@ private:
   MultiToggleGroupButton *m_group_alignment = nullptr;
 
   horizon::RibbonSection *m_section_insert = nullptr;
-  horizon::ToolbarButton *m_btn_image = nullptr;
-  horizon::ToolbarButton *m_btn_table = nullptr;
-  horizon::ToolbarButton *m_btn_shape = nullptr;
+  horizon::RibbonButton *m_btn_image = nullptr;
+  horizon::RibbonButton *m_btn_table = nullptr;
+  horizon::RibbonButton *m_btn_shape = nullptr;
 };
 
 } // namespace pluma_app

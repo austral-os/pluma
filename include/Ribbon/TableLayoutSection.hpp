@@ -2,6 +2,7 @@
 
 #include <horizon/RibbonToolbar.hpp>
 #include <horizon/EventsManager.hpp>
+#include <horizon/RibbonButton.hpp>
 
 namespace pluma_app {
 
@@ -24,14 +25,14 @@ private:
   horizon::RibbonSection *m_section_rows_cols = nullptr;
   horizon::RibbonSection *m_section_merge = nullptr;
   
-  class PlumaToolbarButton* m_btn_insert_above = nullptr;
-  class PlumaToolbarButton* m_btn_insert_below = nullptr;
-  class PlumaToolbarButton* m_btn_insert_left = nullptr;
-  class PlumaToolbarButton* m_btn_insert_right = nullptr;
+  horizon::RibbonButton* m_btn_insert_above = nullptr;
+  horizon::RibbonButton* m_btn_insert_below = nullptr;
+  horizon::RibbonButton* m_btn_insert_left = nullptr;
+  horizon::RibbonButton* m_btn_insert_right = nullptr;
 
-  class PlumaToolbarButton* m_btn_merge_cells = nullptr;
-  class PlumaToolbarButton* m_btn_split_cells = nullptr;
-  class PlumaToolbarButton* m_btn_split_table = nullptr;
+  horizon::RibbonButton* m_btn_merge_cells = nullptr;
+  horizon::RibbonButton* m_btn_split_cells = nullptr;
+  horizon::RibbonButton* m_btn_split_table = nullptr;
 };
 
 } // namespace pluma_app

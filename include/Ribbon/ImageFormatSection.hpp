@@ -2,6 +2,7 @@
 
 #include <horizon/RibbonToolbar.hpp>
 #include <horizon/EventsManager.hpp>
+#include <horizon/RibbonButton.hpp>
 #include <pluma/Style/StyleProperties.hpp>
 #include <map>
 
@@ -18,7 +19,7 @@ public:
 
 private:
   horizon::RibbonSection *m_section_format = nullptr;
-  std::map<pluma::TextWrapMode, class PlumaToolbarButton*> m_wrap_buttons;
+  std::map<pluma::TextWrapMode, horizon::RibbonButton*> m_wrap_buttons;
 };
 
 } // namespace pluma_app

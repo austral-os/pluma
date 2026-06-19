@@ -9,7 +9,7 @@
 #include <horizon/I18n.hpp>
 #include "Widgets/MarginButton.hpp"
 #include "Widgets/OptionButton.hpp"
-#include "Widgets/PlumaToolbarButton.hpp"
+#include <horizon/RibbonButton.hpp>
 #include "Widgets/SizeButton.hpp"
 
 namespace pluma_app {
@@ -17,11 +17,10 @@ namespace pluma_app {
 PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   m_section_setup = ribbon->add_section(tab_index, horizon::i18n().tr("pluma-writer.ribbon.page_setup"));
 
-  auto btn_margins =
-      std::make_unique<PlumaToolbarButton>(horizon::i18n().tr("pluma-writer.ribbon.margins"), "pluma-margin");
-  btn_margins->set_size(64, 64);
-  btn_margins->set_icon_size(32);
-  btn_margins->set_fixed_size(64);
+  auto btn_margins = std::make_unique<horizon::RibbonButton>();
+  btn_margins->set_text(horizon::i18n().tr("pluma-writer.ribbon.margins"));
+  btn_margins->set_icon("pluma-margin");
+  btn_margins->set_button_size(horizon::RibbonButtonSize::Large);
   
 
   auto create_margin_item = [this](const std::string& name, const std::string& dims, int t, int b, int l, int r) {
@@ -80,7 +79,11 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   col_container->set_spacing(4);
 
   // Botón "Orientation"
-  auto btn_orient = std::make_unique<OptionButton>(horizon::i18n().tr("pluma-writer.ribbon.orientation"), "pluma-page-setup");
+  auto btn_orient = std::make_unique<horizon::RibbonButton>();
+  btn_orient->set_text(horizon::i18n().tr("pluma-writer.ribbon.orientation"));
+  btn_orient->set_icon("pluma-page-setup");
+  btn_orient->set_button_size(horizon::RibbonButtonSize::Small);
+  btn_orient->set_text_position(horizon::RibbonButtonTextPosition::RightOfIcon);
   set_tooltip(btn_orient.get(), horizon::i18n().tr("pluma-writer.ribbon.page_orientation"));
   m_btn_orientation = btn_orient.get();
 
@@ -118,7 +121,11 @@ PageLayoutSection::PageLayoutSection(horizon::RibbonToolbar *ribbon, int tab_ind
   col_container->add_child(std::move(btn_orient));
 
   // Botón "Size"
-  auto btn_size = std::make_unique<OptionButton>(horizon::i18n().tr("pluma-writer.ribbon.size"), "pluma-document-size");
+  auto btn_size = std::make_unique<horizon::RibbonButton>();
+  btn_size->set_text(horizon::i18n().tr("pluma-writer.ribbon.size"));
+  btn_size->set_icon("pluma-document-size");
+  btn_size->set_button_size(horizon::RibbonButtonSize::Small);
+  btn_size->set_text_position(horizon::RibbonButtonTextPosition::RightOfIcon);
   set_tooltip(btn_size.get(), horizon::i18n().tr("pluma-writer.ribbon.page_size"));
   m_btn_size = btn_size.get();
 

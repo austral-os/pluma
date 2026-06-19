@@ -2,7 +2,7 @@
 #include <horizon/ToolbarButton.hpp>
 #include <horizon/Widget.hpp>
 #include <horizon/I18n.hpp>
-#include "Widgets/PlumaToolbarButton.hpp"
+#include <horizon/RibbonButton.hpp>
 
 namespace pluma_app {
 
@@ -15,10 +15,10 @@ ImageFormatSection::ImageFormatSection(horizon::RibbonToolbar *ribbon, int tab_i
   wrap_container->set_fixed_size(480); // Ensure enough width for 7x 64px buttons + spacing
 
   auto create_wrap_button = [this](const std::string& name, const std::string& icon_name, pluma::TextWrapMode mode) {
-      auto btn = std::make_unique<PlumaToolbarButton>(name, icon_name);
-      btn->set_size(64, 64);
-      btn->set_icon_size(32);
-      btn->set_fixed_size(64);
+      auto btn = std::make_unique<horizon::RibbonButton>();
+      btn->set_text(name);
+      btn->set_icon(icon_name);
+      btn->set_button_size(horizon::RibbonButtonSize::Large);
       
       btn->when_click.connect([this, mode](auto&) {
           pluma::TextWrapMode mode_copy = mode;
