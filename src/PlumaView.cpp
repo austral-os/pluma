@@ -124,10 +124,18 @@ PlumaView::PlumaView() : horizon::Widget() {
   };
   
   bool dict_loaded = false;
-  for (const auto& path : search_paths) {
-      if (spell_service->loadDictionary("es-ES", path + "es_ES.aff", path + "es_ES.dic")) {
-          dict_loaded = true;
-          break;
+  for (const auto& dir : search_paths) {
+      if (!std::filesystem::exists(dir)) continue;
+      for (const auto& entry : std::filesystem::directory_iterator(dir)) {
+          if (entry.is_regular_file() && entry.path().extension() == ".aff") {
+              std::string path = entry.path().string();
+              std::string base = path.substr(0, path.length() - 4);
+              if (std::filesystem::exists(base + ".dic")) {
+                  std::string lang = entry.path().stem().string();
+                  spell_service->registerDictionary(lang, path, base + ".dic");
+                  dict_loaded = true;
+              }
+          }
       }
   }
 
@@ -135,7 +143,7 @@ PlumaView::PlumaView() : horizon::Widget() {
 
       auto analyzer = std::make_shared<pluma::SpellCheckAnalyzer>(
           spell_service,
-          "es-ES",
+          "es_ES",
           [this](const std::vector<std::pair<uint32_t, uint32_t>>& errors) {
               if (application()) {
                   application()->post_task([this, errors]() {
@@ -483,6 +491,7 @@ void PlumaView::perform(horizon::ClipboardAction action) {
                 parent()->calculate_layout();
                 parent()->invalidate();
             }
+            triggerAnalysis();
             break;
         case horizon::ClipboardAction::Paste:
             if (application()) application()->request_clipboard_data(this);
@@ -512,6 +521,7 @@ void PlumaView::on_clipboard_data_received(const std::string &mime, const std::v
                 parent()->calculate_layout();
                 parent()->invalidate();
             }
+            triggerAnalysis();
         }
     }
     
@@ -555,6 +565,14 @@ horizon::print::PrintDocument PlumaView::generate_print_document(const horizon::
 
     unlink(temp_path.c_str());
     return doc;
+}
+
+
+
+void PlumaView::triggerAnalysis() {
+  if (m_service_manager && m_editor) {
+    m_service_manager->runAnalysis(m_editor->getSnapshot(), m_editor->getFormatRegistry());
+  }
 }
 
 } // namespace pluma_app

@@ -16,6 +16,7 @@ public:
 
     void draw(horizon::GraphicsContext& ctx) override;
     void calculate_layout() override;
+  void triggerAnalysis();
 
     int preferred_width() const override;
     int preferred_height() const override;

@@ -225,6 +225,7 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
                       view->calculate_layout();
                       view->invalidate();
                       if (view->parent()) view->parent()->invalidate();
+                      view->triggerAnalysis();
                   }
               }
               application()->close_vault();
