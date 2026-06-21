@@ -12,6 +12,7 @@
 #include <vector>
 #include <horizon/dialogs/FileDialog.hpp>
 #include <horizon/Label.hpp>
+#include <horizon/Slider.hpp>
 
 namespace pluma_app {
 
@@ -39,6 +40,8 @@ private:
     std::unique_ptr<horizon::FileDialog> m_file_dialog;
     horizon::Label* m_lang_label = nullptr;
     horizon::Label* m_status_label = nullptr;
+    horizon::Slider* m_zoom_slider = nullptr;
+    horizon::Label* m_zoom_label = nullptr;
 };
 
 } // namespace pluma_app

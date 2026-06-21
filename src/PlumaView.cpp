@@ -174,8 +174,8 @@ PlumaView::PlumaView() : horizon::Widget() {
       application()->set_focused_widget(this);
     }
 
-    double local_x = ctx.x - x();
-    double local_y = ctx.y - y();
+    double local_x = (ctx.x - x()) / m_zoom;
+    double local_y = (ctx.y - y()) / m_zoom;
 
     // Let the parent ScrollArea handle scrollbar clicks
     if (local_x > width() - 20 || local_y > height() - 20) {
@@ -202,8 +202,8 @@ PlumaView::PlumaView() : horizon::Widget() {
       application()->set_focused_widget(this);
     }
 
-    double local_x = ctx.x - x();
-    double local_y = ctx.y - y();
+    double local_x = (ctx.x - x()) / m_zoom;
+    double local_y = (ctx.y - y()) / m_zoom;
 
     if (local_x > width() - 20 || local_y > height() - 20) {
       return;
@@ -222,8 +222,8 @@ PlumaView::PlumaView() : horizon::Widget() {
 
   when_mouse_release.connect([this](horizon::MouseButtonEventContext &ctx) {
     if (m_editor) {
-      double local_x = ctx.x - x();
-      double local_y = ctx.y - y();
+      double local_x = (ctx.x - x()) / m_zoom;
+      double local_y = (ctx.y - y()) / m_zoom;
       pluma::MouseButton pbtn = pluma::MouseButton::None;
       if (ctx.button == 272 || ctx.button == 1)
         pbtn = pluma::MouseButton::Left;
@@ -240,8 +240,8 @@ PlumaView::PlumaView() : horizon::Widget() {
 
   when_mouse_drag.connect([this](horizon::MouseMoveEventContext &ctx) {
     if (m_editor) {
-      double local_x = ctx.x - x();
-      double local_y = ctx.y - y();
+      double local_x = (ctx.x - x()) / m_zoom;
+      double local_y = (ctx.y - y()) / m_zoom;
       m_editor->onMouseMove(local_x, local_y,
                             static_cast<pluma::ModifierFlags>(ctx.modifiers));
       invalidate();
@@ -345,6 +345,7 @@ void PlumaView::set_application_recursive(horizon::WaylandWindow *app) {
     }
 }
 
+
 void PlumaView::draw(horizon::GraphicsContext &ctx) {
   if (m_is_printing) return;
   if (!m_editor)
@@ -356,6 +357,7 @@ void PlumaView::draw(horizon::GraphicsContext &ctx) {
 
   cairo_save(cr);
   cairo_translate(cr, x(), y());
+  cairo_scale(cr, m_zoom, m_zoom);
 
   // Sync theme colors
   auto h_to_p = [](const horizon::Color &c) -> uint32_t {
@@ -407,8 +409,8 @@ void PlumaView::calculate_layout() {
     doc_h = static_cast<int>(bounds.height.getValue() / 15.0);
   }
 
-  int target_w = doc_w;
-  int target_h = doc_h;
+  int target_w = doc_w * m_zoom;
+  int target_h = doc_h * m_zoom;
 
   if (parent()) {
     if (parent()->width() > target_w) {
@@ -421,20 +423,20 @@ void PlumaView::calculate_layout() {
   }
 
   if (m_editor) {
-    m_editor->setViewport(pluma::Twips(target_w * 15),
-                          pluma::Twips(target_h * 15));
+    m_editor->setViewport(pluma::Twips((target_w / m_zoom) * 15),
+                          pluma::Twips((target_h / m_zoom) * 15));
   }
 }
 
 int PlumaView::preferred_width() const {
-  return 800; // default A4 width in pixels
+  return 800 * m_zoom; // default A4 width in pixels
 }
 
 int PlumaView::preferred_height() const {
-  return 1120; // default A4 height in pixels
+  return 1120 * m_zoom; // default A4 height in pixels
 }
 
-int PlumaView::preferred_height(int /*width*/) const { return 1120; }
+int PlumaView::preferred_height(int /*width*/) const { return 1120 * m_zoom; }
 
 bool PlumaView::load_document(const std::string &path) {
   if (!m_editor)

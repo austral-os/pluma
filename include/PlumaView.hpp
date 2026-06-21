@@ -49,6 +49,19 @@ public:
 
     std::shared_ptr<pluma::PlumaEditor> editor() { return m_editor; }
 
+    void set_zoom(float z) {
+        if (z < 0.5f) z = 0.5f;
+        if (z > 2.0f) z = 2.0f;
+        m_zoom = z;
+        invalidate();
+        calculate_layout();
+        if (parent()) {
+            parent()->calculate_layout();
+            parent()->invalidate();
+        }
+    }
+    float get_zoom() const { return m_zoom; }
+
     void set_application_recursive(horizon::WaylandWindow *app) override;
 
 private:
@@ -58,6 +71,7 @@ private:
     size_t m_blink_timer_id{0};
     std::atomic<bool> m_is_printing{false};
     std::shared_ptr<pluma::ServiceManager> m_service_manager;
+    float m_zoom = 1.0f;
 };
 
 } // namespace pluma_app

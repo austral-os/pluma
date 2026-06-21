@@ -124,7 +124,36 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
   if (statusbar()) {
       statusbar()->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
       statusbar()->add_child(std::unique_ptr<horizon::Widget>(m_status_label));
+      
+      statusbar()->add_child(horizon::Spacer());
+      
       statusbar()->add_child(std::unique_ptr<horizon::Widget>(m_lang_label));
+
+      m_zoom_slider = new horizon::Slider();
+      m_zoom_slider->set_fixed_size(200);
+      m_zoom_slider->set_thumb_shape(horizon::ThumbShape::Circle);
+      m_zoom_slider->set_min(0.5f);
+      m_zoom_slider->set_max(2.0f);
+      m_zoom_slider->set_value(1.0f);
+      m_zoom_slider->when_value_changed.connect([this](horizon::EventContext& ctx) {
+          if (!m_zoom_slider) return;
+          float zoom = m_zoom_slider->value();
+          auto* view = get_current_view();
+          if (view) {
+              view->set_zoom(zoom);
+          }
+          if (m_zoom_label) {
+              char buf[32];
+              snprintf(buf, sizeof(buf), "%d%%", (int)(zoom * 100));
+              m_zoom_label->set_text(buf);
+              m_zoom_label->invalidate();
+          }
+      });
+      statusbar()->add_child(std::unique_ptr<horizon::Widget>(m_zoom_slider));
+
+      m_zoom_label = new horizon::Label("100%");
+      m_zoom_label->set_fixed_size(40);
+      statusbar()->add_child(std::unique_ptr<horizon::Widget>(m_zoom_label));
       
       // Hook up the vault creation on click
       m_lang_label->when_mouse_press.connect([this](horizon::MouseButtonEventContext &) {
