@@ -196,6 +196,36 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
           
           auto table_ptr = table.get();
           
+          search_ptr->when_key_press.connect([this, table_ptr](horizon::KeyEventContext& ev) {
+              if (table_ptr->data().empty()) return;
+              int current_idx = table_ptr->selected_index();
+              int new_idx = current_idx;
+
+              if (ev.keysym == 0xff52) { // Up arrow
+                  new_idx = (current_idx <= 0) ? 0 : current_idx - 1;
+              } else if (ev.keysym == 0xff54) { // Down arrow
+                  new_idx = (current_idx < 0) ? 0 : std::min((int)table_ptr->data().size() - 1, current_idx + 1);
+              } else {
+                  return; // Let TextBox handle typing
+              }
+
+              if (new_idx != current_idx && new_idx >= 0 && new_idx < (int)table_ptr->data().size()) {
+                  table_ptr->set_selected_index(new_idx);
+                  table_ptr->scroll_to_index(new_idx);
+                  ev.stop_propagation = true;
+              }
+          });
+
+          search_ptr->when_submit.connect([table_ptr](horizon::KeyEventContext&) {
+              int current_idx = table_ptr->selected_index();
+              if (current_idx >= 0 && current_idx < (int)table_ptr->data().size()) {
+                  horizon::TableViewRowMouseClickContext<LanguageItem> click_ctx;
+                  click_ctx.row_index = current_idx;
+                  click_ctx.row_data = table_ptr->data()[current_idx];
+                  table_ptr->when_row_click.run(click_ctx);
+              }
+          });
+
           search_ptr->when_text_changed.connect([table_ptr, all_langs](horizon::EventContext&) {
               std::string query = ((horizon::TextBox<horizon::TextPolicy>*)table_ptr->parent()->children()[1].get())->text();
               std::transform(query.begin(), query.end(), query.begin(), ::tolower);
@@ -211,6 +241,9 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
                       }
                   }
                   table_ptr->set_data(filtered);
+                  if (!filtered.empty()) {
+                      table_ptr->set_selected_index(0);
+                  }
               }
           });
           
@@ -237,6 +270,7 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
           content->set_size(300, 400);
           vault->set_content(std::move(content));
           application()->show_vault(vault.release(), -1, -1, 0, m_lang_label);
+          search_ptr->set_focus(true);
       });
   }
 
