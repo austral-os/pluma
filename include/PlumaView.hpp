@@ -5,6 +5,7 @@
 #include <pluma/PlumaEditor.hpp>
 #include <horizon/print/Models.h>
 #include <memory>
+#include <pluma/Services/ServiceManager.hpp>
 
 namespace pluma_app {
 
@@ -55,6 +56,7 @@ private:
     std::string m_clipboard_buffer;
     size_t m_blink_timer_id{0};
     std::atomic<bool> m_is_printing{false};
+    std::shared_ptr<pluma::ServiceManager> m_service_manager;
 };
 
 } // namespace pluma_app

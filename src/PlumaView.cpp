@@ -9,6 +9,8 @@
 #include <horizon/ThemeManager.hpp>
 #include <horizon/WaylandWindow.hpp>
 #include <horizon/Menu.hpp>
+#include <pluma/Services/SpellCheckerService.hpp>
+#include <pluma/Services/SpellCheckAnalyzer.hpp>
 #include <string>
 #include <fstream>
 #include <unistd.h>
@@ -108,6 +110,46 @@ PlumaView::PlumaView() : horizon::Widget() {
   m_editor->showMargins();
 
   m_editor->loadText("");
+
+  m_service_manager = std::make_shared<pluma::ServiceManager>();
+
+  auto spell_service = std::make_shared<pluma::SpellCheckerService>();
+  
+  std::vector<std::string> search_paths = {
+      "dictionaries/",
+      "/usr/share/pluma-writer/dictionaries/",
+      "/usr/local/share/pluma-writer/dictionaries/"
+  };
+  
+  bool dict_loaded = false;
+  for (const auto& path : search_paths) {
+      if (spell_service->loadDictionary("es-ES", path + "es_ES.aff", path + "es_ES.dic")) {
+          dict_loaded = true;
+          break;
+      }
+  }
+
+  if (dict_loaded) {
+
+      auto analyzer = std::make_shared<pluma::SpellCheckAnalyzer>(
+          spell_service,
+          "es-ES",
+          [this](const std::vector<std::pair<uint32_t, uint32_t>>& errors) {
+              if (application()) {
+                  application()->post_task([this, errors]() {
+                      if (m_editor) {
+                          m_editor->clearDecorationGlobally(pluma::TextDecoration::SpellingError);
+                          for (const auto& err : errors) {
+                              m_editor->applyStyle(err.first, err.second, pluma::PropertyId::Decoration, pluma::TextDecoration::SpellingError);
+                          }
+                          invalidate();
+                      }
+                  });
+              }
+          }
+      );
+      m_service_manager->registerService(analyzer);
+  }
 
   set_background_color(horizon::Color(0.8f, 0.8f, 0.8f, 1.0f));
   set_focusable(true);
@@ -227,6 +269,10 @@ PlumaView::PlumaView() : horizon::Widget() {
       invalidate();
       if (parent())
         parent()->invalidate();
+        
+      if (m_service_manager && m_editor) {
+          m_service_manager->runAnalysis(m_editor->getSnapshot());
+      }
     }
   });
 

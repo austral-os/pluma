@@ -61,6 +61,17 @@ install(DIRECTORY assets/icons/scalable/
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable
 )
 
+install(DIRECTORY assets/dictionaries/
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pluma-writer/dictionaries
+)
+
+add_custom_command(TARGET pluma-writer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/assets/dictionaries
+    $<TARGET_FILE_DIR:pluma-writer>/dictionaries
+    COMMENT "Copying app dictionaries to build directory"
+)
+
 # --- Packaging (CPack) ---
 set(CPACK_PACKAGE_NAME "pluma-writer")
 set(CPACK_PACKAGE_VENDOR "hdrdevs")
