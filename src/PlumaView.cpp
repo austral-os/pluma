@@ -117,6 +117,8 @@ PlumaView::PlumaView() : horizon::Widget() {
   
   std::vector<std::string> search_paths = {
       "dictionaries/",
+      "build/dictionaries/",
+      "assets/dictionaries/",
       "/usr/share/pluma-writer/dictionaries/",
       "/usr/local/share/pluma-writer/dictionaries/"
   };
@@ -271,8 +273,8 @@ PlumaView::PlumaView() : horizon::Widget() {
         parent()->invalidate();
         
       if (m_service_manager && m_editor) {
-          m_service_manager->runAnalysis(m_editor->getSnapshot());
-      }
+          m_service_manager->runAnalysis(m_editor->getSnapshot(), m_editor->getFormatRegistry());
+        }
     }
   });
 

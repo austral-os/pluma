@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <horizon/dialogs/FileDialog.hpp>
+#include <horizon/Label.hpp>
 
 namespace pluma_app {
 
@@ -36,6 +37,8 @@ private:
     std::vector<std::unique_ptr<ImageFormatSection>> m_image_format_sections;
     std::vector<std::unique_ptr<TableLayoutSection>> m_table_layout_sections;
     std::unique_ptr<horizon::FileDialog> m_file_dialog;
+    horizon::Label* m_lang_label = nullptr;
+    horizon::Label* m_status_label = nullptr;
 };
 
 } // namespace pluma_app

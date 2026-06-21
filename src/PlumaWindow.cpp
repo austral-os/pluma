@@ -14,6 +14,18 @@
 #include <pluma/Style/StyleProperties.hpp>
 #include <horizon/dialogs/FileDialog.hpp>
 
+#include <horizon/SearchBox.hpp>
+#include <horizon/TableView.hpp>
+#include <horizon/TableColumn.hpp>
+#include <horizon/Panel.hpp>
+#include <unicode/locid.h>
+
+struct LanguageItem {
+    std::string id;
+    std::string display_name;
+};
+
+
 namespace pluma_app {
 
 class ColorPaletteItem : public horizon::Widget {
@@ -98,7 +110,136 @@ private:
 
 PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::ApplicationWindow(horizon::i18n().tr("pluma-writer.title")) {
   set_size(1024, 768);
+
   show_status_bar();
+  m_status_label = new horizon::Label("Ready");
+  m_status_label->set_position_type(horizon::FILL);
+  m_lang_label = new horizon::Label("es"); // default
+  m_lang_label->set_fixed_size(150);
+  // removed FREE position
+  
+  // Custom draw for label to make it look like a button
+  m_lang_label->set_focusable(true);
+
+  if (statusbar()) {
+      statusbar()->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
+      statusbar()->add_child(std::unique_ptr<horizon::Widget>(m_status_label));
+      statusbar()->add_child(std::unique_ptr<horizon::Widget>(m_lang_label));
+      
+      // Hook up the vault creation on click
+      m_lang_label->when_mouse_press.connect([this](horizon::MouseButtonEventContext &) {
+          auto vault = std::make_unique<horizon::Vault>();
+          auto content = std::make_unique<horizon::Widget>();
+          content->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+          content->set_spacing(6);
+          
+          auto title = std::make_unique<horizon::Label>(horizon::i18n().tr("Language"));
+          title->set_fixed_size(24);
+          content->add_child(std::move(title));
+          
+          auto search = std::make_unique<horizon::SearchBox>();
+          search->set_placeholder("Search...");
+          auto search_ptr = search.get();
+          content->add_child(std::move(search));
+          
+          auto table = std::make_unique<horizon::TableView<LanguageItem>>();
+          table->set_width_mode(horizon::TableViewWidthMode::Fill);
+          
+          horizon::TableColumn<LanguageItem> col1;
+          col1.id = "name";
+          col1.title = "Language";
+          col1.width = -1;
+          col1.cell_factory = [](const LanguageItem &item) {
+              return std::make_unique<horizon::Label>(item.display_name);
+          };
+          table->add_column(std::move(col1));
+          table->set_header_visible(false);
+          
+          std::vector<LanguageItem> all_langs;
+          
+          // scan dictionaries
+          std::vector<std::string> search_paths = {
+              "dictionaries/",
+              "build/dictionaries/",
+              "assets/dictionaries/",
+              "/usr/share/pluma-writer/dictionaries/",
+              "/usr/local/share/pluma-writer/dictionaries/"
+          };
+          std::string active_path;
+          for (const auto& path : search_paths) {
+              if (std::filesystem::exists(path)) {
+                  active_path = path; break;
+              }
+          }
+          if (!active_path.empty()) {
+              try {
+                  for (const auto& entry : std::filesystem::directory_iterator(active_path)) {
+                      if (entry.path().extension() == ".aff") {
+                          std::string lang = entry.path().stem().string();
+                          icu::Locale loc(lang.c_str());
+                          icu::UnicodeString ustr;
+                          loc.getDisplayName(loc, ustr);
+                          std::string disp;
+                          ustr.toUTF8String(disp);
+                          if (disp.empty()) disp = lang;
+                          all_langs.push_back({lang, disp});
+                      }
+                  }
+              } catch (...) {}
+          }
+          
+          std::sort(all_langs.begin(), all_langs.end(), [](const LanguageItem& a, const LanguageItem& b) {
+              return a.display_name < b.display_name;
+          });
+          
+          std::cout << "POPULATING TABLE WITH " << all_langs.size() << " ITEMS\n"; table->set_data(all_langs);
+          
+          auto table_ptr = table.get();
+          
+          search_ptr->when_text_changed.connect([table_ptr, all_langs](horizon::EventContext&) {
+              std::string query = ((horizon::TextBox<horizon::TextPolicy>*)table_ptr->parent()->children()[1].get())->text();
+              std::transform(query.begin(), query.end(), query.begin(), ::tolower);
+              if (query.empty()) {
+                  table_ptr->set_data(all_langs);
+              } else {
+                  std::vector<LanguageItem> filtered;
+                  for (const auto& lang : all_langs) {
+                      std::string name_lower = lang.display_name;
+                      std::transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
+                      if (name_lower.find(query) != std::string::npos) {
+                          filtered.push_back(lang);
+                      }
+                  }
+                  table_ptr->set_data(filtered);
+              }
+          });
+          
+          table_ptr->when_row_click.connect([this](horizon::EventContext& ctx) {
+              auto& ev = static_cast<horizon::TableViewRowMouseClickContext<LanguageItem>&>(ctx);
+              auto* view = this->get_current_view();
+              if (view && view->editor()) {
+                  auto editor = view->editor();
+                  auto sel = editor->getSelectionRange();
+                  if (!sel.isCollapsed()) {
+                      editor->applyStyle(sel.getStart(), sel.getLength(), pluma::PropertyId::Language, ev.row_data.id);
+                      view->calculate_layout();
+                      view->invalidate();
+                      if (view->parent()) view->parent()->invalidate();
+                  }
+              }
+              application()->close_vault();
+          });
+          
+          table->set_position_type(horizon::FILL);
+          content->add_child(std::move(table));
+          
+          content->set_size(300, 400);
+          vault->set_content(std::move(content));
+          application()->show_vault(vault.release(), -1, -1, 0, m_lang_label);
+      });
+  }
+
+
 
   auto main_toolbar = std::make_unique<MainToolbar>();
   auto *tb_ptr = main_toolbar.get();
@@ -1096,7 +1237,7 @@ void PlumaWindow::update_status_bar() {
   auto *view = get_current_view();
   if (!view || !view->editor()) {
     std::string text = horizon::i18n().tr("pluma-writer.status.line") + " 1, " + horizon::i18n().tr("pluma-writer.status.col") + " 1 | " + horizon::i18n().tr("pluma-writer.status.total") + ": 1";
-    set_status_text(text);
+    set_status_text(text); if (m_status_label) { m_status_label->set_text(text); m_status_label->invalidate(); }
     return;
   }
 
@@ -1121,13 +1262,25 @@ void PlumaWindow::update_status_bar() {
       total_lines++;
   }
 
+
   char buf[256];
   snprintf(buf, sizeof(buf), "%s %d, %s %d | %s: %d", 
            horizon::i18n().tr("pluma-writer.status.line").c_str(), line, 
            horizon::i18n().tr("pluma-writer.status.col").c_str(), col,
            horizon::i18n().tr("pluma-writer.status.total").c_str(), total_lines);
-  set_status_text(buf);
+  set_status_text(buf); if (m_status_label) { m_status_label->set_text(buf); m_status_label->invalidate(); }
+  
+  if (m_lang_label) {
+      auto style_opt = editor->getFormatRegistry().getStyleAt(offset).get(pluma::PropertyId::Language);
+      if (style_opt) {
+          m_lang_label->set_text(std::get<std::string>(*style_opt));
+      } else {
+          m_lang_label->set_text("es"); // fallback
+      }
+      m_lang_label->invalidate();
+  }
 }
+
 
 void PlumaWindow::update_ribbon_state(PlumaView* view, HomeSection* home_sec) {
     if (!view || !view->editor() || !home_sec) return;

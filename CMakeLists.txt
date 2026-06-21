@@ -8,6 +8,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo)
 pkg_check_modules(HORIZON REQUIRED IMPORTED_TARGET horizon)
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
+pkg_check_modules(ICU REQUIRED icu-uc icu-i18n)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
@@ -18,6 +19,7 @@ target_include_directories(pluma-writer PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../lib-pluma/include
     ${CAIRO_INCLUDE_DIRS}
     ${FONTCONFIG_INCLUDE_DIRS}
+    ${ICU_INCLUDE_DIRS}
 )
 
 target_link_directories(pluma-writer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../lib-pluma/build)
@@ -27,6 +29,7 @@ target_link_libraries(pluma-writer PRIVATE
     pluma
     ${CAIRO_LIBRARIES}
     ${FONTCONFIG_LIBRARIES}
+    ${ICU_LIBRARIES}
 )
 
 target_compile_definitions(pluma-writer PRIVATE APP_VERSION="${PROJECT_VERSION}")
