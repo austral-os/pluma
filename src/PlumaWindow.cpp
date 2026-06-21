@@ -262,6 +262,7 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
                   }
               }
               application()->close_vault();
+              if (view) view->set_focus(true);
           });
           
           table->set_position_type(horizon::FILL);
@@ -1237,6 +1238,18 @@ std::string PlumaWindow::current_file_path() const {
 }
 
 void PlumaWindow::setup_events() {
+  when_key_press.connect([this](horizon::KeyEventContext &ctx) {
+      if ((ctx.modifiers & horizon::WaylandWindow::Modifier::CTRL) &&
+          (ctx.modifiers & horizon::WaylandWindow::Modifier::SHIFT) &&
+          (ctx.keysym == 'l' || ctx.keysym == 'L')) {
+          if (m_lang_label) {
+              horizon::MouseButtonEventContext mock_ctx;
+              m_lang_label->when_mouse_press.run(mock_ctx);
+          }
+          ctx.stop_propagation = true;
+      }
+  });
+
   when_file_opened.connect([this](Window::FileOpenedContext &ctx) {
     std::filesystem::path p(ctx.path);
     create_tab(p.filename().string(), ctx.path);
