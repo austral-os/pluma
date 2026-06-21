@@ -408,7 +408,6 @@ void PlumaView::calculate_layout() {
   if (parent()) {
     int p_w = parent()->width();
     int p_h = parent()->height();
-    LOG_INFO << "PlumaView::calculate_layout: p_w=" << p_w << " target_w=" << target_w;
 
     bool has_v_scroll = target_h > p_h;
     bool has_h_scroll = target_w > p_w;
