@@ -9,6 +9,7 @@
 #include <horizon/ThemeManager.hpp>
 #include <horizon/WaylandWindow.hpp>
 #include <horizon/Menu.hpp>
+#include <string>
 #include <fstream>
 #include <unistd.h>
 
@@ -312,7 +313,8 @@ void PlumaView::draw(horizon::GraphicsContext &ctx) {
   horizon::Color bg = horizon::ThemeManager::instance().get_color("textbox_bg");
   horizon::Color text =
       horizon::ThemeManager::instance().get_color("textbox_fg");
-  horizon::Color margin = bg.lighter(20.0f);
+  std::string variant = horizon::ThemeManager::instance().get_variant();
+  horizon::Color margin = (variant == "dark") ? bg.lighter(20.0f) : bg.darker(20.0f);
   horizon::Color workspace =
       horizon::ThemeManager::instance().get_color("window_bg");
   workspace = workspace.darker(50.0f);
