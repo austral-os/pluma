@@ -1284,7 +1284,7 @@ void PlumaWindow::setup_events() {
 void PlumaWindow::update_status_bar() {
   auto *view = get_current_view();
   if (!view || !view->editor()) {
-    std::string text = horizon::i18n().tr("pluma-writer.status.line") + " 1, " + horizon::i18n().tr("pluma-writer.status.col") + " 1 | " + horizon::i18n().tr("pluma-writer.status.total") + ": 1";
+    std::string text = "Pages: 1 of 1, Words: 0";
     set_status_text(text); if (m_status_label) { m_status_label->set_text(text); m_status_label->invalidate(); }
     return;
   }
@@ -1293,31 +1293,26 @@ void PlumaWindow::update_status_bar() {
   std::string text = editor->getText();
   uint32_t offset = editor->getCursorOffset();
 
-  int line = 1;
-  int col = 1;
-  for (uint32_t i = 0; i < offset && i < text.length(); ++i) {
-    if (text[i] == '\n') {
-      line++;
-      col = 1;
-    } else {
-      col++;
-    }
-  }
+  uint32_t current_page = editor->getCurrentPageNumber();
+  size_t total_pages = editor->getPageCount();
+  if (total_pages == 0) total_pages = 1;
+  if (current_page > total_pages) current_page = total_pages;
 
-  int total_lines = 1;
+  int word_count = 0;
+  bool in_word = false;
   for (char c : text) {
-    if (c == '\n')
-      total_lines++;
+      if (std::isspace(static_cast<unsigned char>(c))) {
+          in_word = false;
+      } else if (!in_word) {
+          in_word = true;
+          word_count++;
+      }
   }
-
 
   char buf[256];
-  snprintf(buf, sizeof(buf), "%s %d, %s %d | %s: %d", 
-           horizon::i18n().tr("pluma-writer.status.line").c_str(), line, 
-           horizon::i18n().tr("pluma-writer.status.col").c_str(), col,
-           horizon::i18n().tr("pluma-writer.status.total").c_str(), total_lines);
+  snprintf(buf, sizeof(buf), "Pages: %u of %zu, Words: %d", current_page, total_pages, word_count);
   set_status_text(buf); if (m_status_label) { m_status_label->set_text(buf); m_status_label->invalidate(); }
-  
+
   if (m_lang_label) {
       auto style_opt = editor->getFormatRegistry().getStyleAt(offset).get(pluma::PropertyId::Language);
       if (style_opt) {
