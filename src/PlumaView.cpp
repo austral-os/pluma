@@ -1,4 +1,5 @@
 #include "PlumaView.hpp"
+#include <horizon/Logger.hpp>
 #include <horizon/GraphicsContext.hpp>
 #include <pluma/Plugins/PlumaArchiveExporter.hpp>
 #include <pluma/Plugins/PdfExporter.hpp>
@@ -97,6 +98,7 @@ private:
 };
 
 PlumaView::PlumaView() : horizon::Widget() {
+  set_position_type(horizon::FREE);
   auto shaper = std::make_shared<RealCairoShaper>();
   auto font =
       std::make_shared<pluma::DummyFontManager>()->getFont({"Inter", 12.0f});
@@ -400,21 +402,25 @@ void PlumaView::calculate_layout() {
   if (m_is_printing) return;
   horizon::Widget::calculate_layout();
 
-  int doc_w = 800;
-  int doc_h = 1120;
-
-  if (m_editor) {
-    auto bounds = m_editor->getDocumentBounds();
-    doc_w = static_cast<int>(bounds.width.getValue() / 15.0);
-    doc_h = static_cast<int>(bounds.height.getValue() / 15.0);
-  }
-
-  int target_w = doc_w * m_zoom;
-  int target_h = doc_h * m_zoom;
+  int target_w = preferred_width();
+  int target_h = preferred_height();
 
   if (parent()) {
-    if (parent()->width() > target_w) {
-      target_w = parent()->width();
+    int p_w = parent()->width();
+    int p_h = parent()->height();
+    LOG_INFO << "PlumaView::calculate_layout: p_w=" << p_w << " target_w=" << target_w;
+
+    bool has_v_scroll = target_h > p_h;
+    bool has_h_scroll = target_w > p_w;
+
+    int viewport_w = p_w - (has_v_scroll ? 16 : 0);
+    int viewport_h = p_h - (has_h_scroll ? 16 : 0);
+
+    if (viewport_w > target_w) {
+      target_w = viewport_w;
+    }
+    if (viewport_h > target_h) {
+      target_h = viewport_h;
     }
   }
 
@@ -427,6 +433,7 @@ void PlumaView::calculate_layout() {
                           pluma::Twips((target_h / m_zoom) * 15));
   }
 }
+
 
 int PlumaView::preferred_width() const {
   return 800 * m_zoom; // default A4 width in pixels

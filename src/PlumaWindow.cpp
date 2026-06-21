@@ -152,7 +152,7 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
       statusbar()->add_child(std::unique_ptr<horizon::Widget>(m_zoom_slider));
 
       m_zoom_label = new horizon::Label("100%");
-      m_zoom_label->set_fixed_size(40);
+      m_zoom_label->set_fixed_size(60);
       statusbar()->add_child(std::unique_ptr<horizon::Widget>(m_zoom_label));
       
       // Hook up the vault creation on click
