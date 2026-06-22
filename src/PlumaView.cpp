@@ -1,6 +1,7 @@
 #include "PlumaView.hpp"
 #include <horizon/Logger.hpp>
 #include <horizon/GraphicsContext.hpp>
+#include <horizon/I18n.hpp>
 #include <pluma/Plugins/PlumaArchiveExporter.hpp>
 #include <pluma/Plugins/PdfExporter.hpp>
 #include <pluma/Plugins/PlumaArchiveImporter.hpp>
@@ -12,6 +13,7 @@
 #include <horizon/Menu.hpp>
 #include <pluma/Services/SpellCheckerService.hpp>
 #include <pluma/Services/SpellCheckAnalyzer.hpp>
+#include <pluma/dialogs/FontDialog.hpp>
 #include <string>
 #include <fstream>
 #include <unistd.h>
@@ -705,6 +707,64 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
         insert_item->set_submenu(std::move(table_menu));
         menu->add_item(std::move(insert_item));
     }
+
+    auto char_item = std::make_unique<horizon::MenuItem>(horizon::i18n().tr("pluma-writer.font_dialog.character"));
+    char_item->when_click.connect([this](auto&) {
+        if (application()) {
+            application()->add_timer(50, [this]() {
+                auto dlg = std::make_unique<pluma_app::dialogs::FontDialog>();
+                
+                std::string current_lang = "es_ES";
+                std::string current_family = "sans-serif";
+                float current_size = 12.0f;
+                bool current_bold = false;
+                bool current_italic = false;
+
+                if (m_editor) {
+                    uint32_t head = m_editor->getSelectionRange().head;
+                    auto style = m_editor->getFormatRegistry().getStyleAt(head);
+                    if (auto l = style.get(pluma::PropertyId::Language)) {
+                        current_lang = std::get<std::string>(*l);
+                    }
+                    if (auto f = style.get(pluma::PropertyId::FontFamily)) {
+                        current_family = std::get<std::string>(*f);
+                    }
+                    if (auto s = style.get(pluma::PropertyId::FontSize)) {
+                        current_size = std::get<float>(*s);
+                    }
+                    if (auto w = style.get(pluma::PropertyId::FontWeight)) {
+                        current_bold = std::get<uint16_t>(*w) >= 700;
+                    }
+                    if (auto i = style.get(pluma::PropertyId::FontStyleItalic)) {
+                        current_italic = std::get<bool>(*i);
+                    }
+                }
+                dlg->set_initial_language(current_lang);
+                dlg->set_initial_font(current_family, current_size, current_bold, current_italic);
+
+                dlg->when_accepted.connect([this](pluma_app::dialogs::FontSelectedEvent& ev) {
+                    if (m_editor) {
+                        auto sel = m_editor->getSelectionRange();
+                        uint32_t start = std::min(sel.anchor, sel.head);
+                        uint32_t len = std::max(sel.anchor, sel.head) - start;
+                        
+                        if (len > 0) {
+                            m_editor->applyStyle(start, len, pluma::PropertyId::FontFamily, pluma::PropertyValue(ev.family));
+                            m_editor->applyStyle(start, len, pluma::PropertyId::FontSize, pluma::PropertyValue(ev.size));
+                            uint16_t weight = ev.bold ? 700 : 400;
+                            m_editor->applyStyle(start, len, pluma::PropertyId::FontWeight, pluma::PropertyValue(weight));
+                            m_editor->applyStyle(start, len, pluma::PropertyId::FontStyleItalic, pluma::PropertyValue(ev.italic));
+                            if (!ev.language.empty()) {
+                                m_editor->applyStyle(start, len, pluma::PropertyId::Language, pluma::PropertyValue(ev.language));
+                            }
+                        }
+                    }
+                });
+                dlg->run();
+            }, false);
+        }
+    });
+    menu->add_item(std::move(char_item));
 
     return menu;
 }

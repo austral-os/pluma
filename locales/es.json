@@ -92,6 +92,24 @@
             "split_cells": "Dividir celdas",
             "split_horizontally": "Dividir horizontalmente",
             "split_vertically": "Dividir verticalmente"
+        },
+        "font_dialog": {
+            "character": "Carácter",
+            "family": "Familia:",
+            "style": "Estilo:",
+            "size": "Tamaño:",
+            "language": "Idioma:",
+            "font": "Fuente",
+            "font_effects": "Efectos de Fuente",
+            "position": "Posición",
+            "highlighting": "Resaltado",
+            "borders": "Bordes",
+            "ok": "Aceptar",
+            "cancel": "Cancelar",
+            "regular": "Regular",
+            "italic": "Cursiva",
+            "bold": "Negrita",
+            "bold_italic": "Negrita Cursiva"
         }
     }
 }

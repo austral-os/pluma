@@ -92,6 +92,24 @@
             "split_cells": "Split Cells",
             "split_horizontally": "Split Horizontally",
             "split_vertically": "Split Vertically"
+        },
+        "font_dialog": {
+            "character": "Character",
+            "family": "Family:",
+            "style": "Style:",
+            "size": "Size:",
+            "language": "Language:",
+            "font": "Font",
+            "font_effects": "Font Effects",
+            "position": "Position",
+            "highlighting": "Highlighting",
+            "borders": "Borders",
+            "ok": "OK",
+            "cancel": "Cancel",
+            "regular": "Regular",
+            "italic": "Italic",
+            "bold": "Bold",
+            "bold_italic": "Bold Italic"
         }
     }
 }
