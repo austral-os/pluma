@@ -222,7 +222,7 @@ PlumaView::PlumaView() : horizon::Widget() {
 
       if (!ctx.stop_propagation) {
           m_active_context_menu = buildContextMenu(local_x, local_y);
-          if (m_active_context_menu && !m_active_context_menu->children().empty()) {
+          if (m_active_context_menu) {
               if (application()) {
                   application()->show_context_menu(m_active_context_menu.get(), -1, -1, ctx.serial, this);
               }
