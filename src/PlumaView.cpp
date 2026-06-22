@@ -785,6 +785,15 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
 
                 if (m_editor) {
                     uint32_t head = m_editor->getSelectionRange().head;
+                    
+                    auto snapshot = m_editor->getSnapshot();
+                    if (snapshot) {
+                        std::string text = snapshot->getText();
+                        while (head > 0 && text[head - 1] != '\n') {
+                            head--;
+                        }
+                    }
+                    
                     auto block_style = m_editor->getFormatRegistry().getStyleAt(head);
                     
                     if (auto v = block_style.get(pluma::PropertyId::ParagraphIndentLeft)) indent_before = std::get<float>(*v);
@@ -800,16 +809,33 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                     if (m_editor) {
                         auto sel = m_editor->getSelectionRange();
                         uint32_t start = std::min(sel.anchor, sel.head);
-                        uint32_t len = std::max(sel.anchor, sel.head) - start;
+                        uint32_t end_pos = std::max(sel.anchor, sel.head);
                         
+                        auto snapshot = m_editor->getSnapshot();
+                        if (snapshot) {
+                            std::string text = snapshot->getText();
+                            while (start > 0 && text[start - 1] != '\n') {
+                                start--;
+                            }
+                            while (end_pos < text.length() && text[end_pos] != '\n') {
+                                end_pos++;
+                            }
+                            if (end_pos < text.length() && text[end_pos] == '\n') {
+                                end_pos++;
+                            }
+                        }
+                        
+                        uint32_t len = end_pos - start;
                         if (len == 0) len = 1;
                         
+                        m_editor->suspendLayout();
                         m_editor->applyStyle(start, len, pluma::PropertyId::ParagraphIndentLeft, pluma::PropertyValue(ev.indent_before));
                         m_editor->applyStyle(start, len, pluma::PropertyId::ParagraphIndentRight, pluma::PropertyValue(ev.indent_after));
                         m_editor->applyStyle(start, len, pluma::PropertyId::ParagraphIndentFirstLine, pluma::PropertyValue(ev.indent_first_line));
                         m_editor->applyStyle(start, len, pluma::PropertyId::ParagraphSpacingBefore, pluma::PropertyValue(ev.spacing_above));
                         m_editor->applyStyle(start, len, pluma::PropertyId::ParagraphSpacingAfter, pluma::PropertyValue(ev.spacing_below));
                         m_editor->applyStyle(start, len, pluma::PropertyId::LineSpacing, pluma::PropertyValue(ev.line_spacing));
+                        m_editor->resumeLayout();
                         
                         this->invalidate();
                     }
