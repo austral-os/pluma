@@ -6,6 +6,7 @@
 #include <horizon/print/Models.h>
 #include <memory>
 #include <pluma/Services/ServiceManager.hpp>
+#include <pluma/Services/SpellCheckerService.hpp>
 
 namespace pluma_app {
 
@@ -71,7 +72,11 @@ private:
     size_t m_blink_timer_id{0};
     std::atomic<bool> m_is_printing{false};
     std::shared_ptr<pluma::ServiceManager> m_service_manager;
+    std::shared_ptr<pluma::SpellCheckerService> m_spell_service;
+    std::unique_ptr<horizon::Menu> m_active_context_menu;
     float m_zoom = 1.0f;
+    
+    std::unique_ptr<horizon::Menu> buildContextMenu(double local_x, double local_y);
 };
 
 } // namespace pluma_app

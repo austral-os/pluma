@@ -142,6 +142,7 @@ PlumaView::PlumaView() : horizon::Widget() {
   }
 
   if (dict_loaded) {
+      m_spell_service = spell_service;
 
       auto analyzer = std::make_shared<pluma::SpellCheckAnalyzer>(
           spell_service,
@@ -165,7 +166,6 @@ PlumaView::PlumaView() : horizon::Widget() {
 
   set_background_color(horizon::Color(0.8f, 0.8f, 0.8f, 1.0f));
   set_focusable(true);
-  set_context_menu(std::make_unique<horizon::Menu>());
 
   when_application_load.connect([this](horizon::EventContext &) {
     set_focus(true);
@@ -218,6 +218,16 @@ PlumaView::PlumaView() : horizon::Widget() {
         m_editor->onMouseUp(local_x, local_y, pluma::MouseButton::Right,
                             static_cast<pluma::ModifierFlags>(ctx.modifiers));
         invalidate();
+      }
+
+      if (!ctx.stop_propagation) {
+          m_active_context_menu = buildContextMenu(local_x, local_y);
+          if (m_active_context_menu && !m_active_context_menu->children().empty()) {
+              if (application()) {
+                  application()->show_context_menu(m_active_context_menu.get(), -1, -1, ctx.serial, this);
+              }
+              ctx.stop_propagation = true;
+          }
       }
     }
   });
@@ -344,6 +354,10 @@ void PlumaView::set_application_recursive(horizon::WaylandWindow *app) {
                 invalidate();
             }
         }, true);
+        
+        app->when_popup_dismissed.connect([this](horizon::PopupDismissedContext &) {
+            m_active_context_menu.reset();
+        });
     }
 }
 
@@ -581,6 +595,81 @@ void PlumaView::triggerAnalysis() {
   if (m_service_manager && m_editor) {
     m_service_manager->runAnalysis(m_editor->getSnapshot(), m_editor->getFormatRegistry());
   }
+}
+
+std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, double local_y) {
+    auto menu = std::make_unique<horizon::Menu>();
+    if (!m_editor) return menu;
+
+    uint32_t head = m_editor->getSelectionRange().head;
+    auto style = m_editor->getFormatRegistry().getStyleAt(head);
+    
+    bool is_spell_error = false;
+    if (auto dec = style.get(pluma::PropertyId::Decoration)) {
+        if (std::get<pluma::TextDecoration>(*dec) == pluma::TextDecoration::SpellingError) {
+            is_spell_error = true;
+        }
+    }
+
+    if (is_spell_error && m_spell_service) {
+        std::string text = m_editor->getSnapshot()->getText();
+        int start = head;
+        while (start > 0 && std::isalpha(static_cast<unsigned char>(text[start - 1]))) start--;
+        int end = head;
+        while (end < text.length() && std::isalpha(static_cast<unsigned char>(text[end]))) end++;
+        
+        if (start < end) {
+            std::string word = text.substr(start, end - start);
+            std::string lang = "es_ES";
+            if (auto l = style.get(pluma::PropertyId::Language)) {
+                lang = std::get<std::string>(*l);
+            }
+            
+            auto suggestions = m_spell_service->getSuggestions(word, lang);
+            for (size_t i = 0; i < std::min<size_t>(5, suggestions.size()); ++i) {
+                auto item = std::make_unique<horizon::MenuItem>(suggestions[i]);
+                item->when_click.connect([this, start, end, sugg = suggestions[i]](auto&) {
+                    m_editor->setSelection(start, end);
+                    m_editor->insertTextAtCursor(sugg);
+                    m_editor->applyStyle(start, sugg.length(), pluma::PropertyId::Decoration, pluma::TextDecoration::None);
+                    triggerAnalysis();
+                    invalidate();
+                    if (parent()) parent()->invalidate();
+                });
+                menu->add_item(std::move(item));
+            }
+            
+            if (!suggestions.empty()) {
+                menu->add_separator();
+            }
+        }
+    }
+
+    if (m_editor->isInTable()) {
+        auto table_menu = std::make_unique<horizon::Menu>();
+        
+        auto add_row_up = std::make_unique<horizon::MenuItem>("Fila Arriba");
+        add_row_up->when_click.connect([this](auto&){ m_editor->insertTableRowAbove(); invalidate(); });
+        table_menu->add_item(std::move(add_row_up));
+        
+        auto add_row_down = std::make_unique<horizon::MenuItem>("Fila Abajo");
+        add_row_down->when_click.connect([this](auto&){ m_editor->insertTableRowBelow(); invalidate(); });
+        table_menu->add_item(std::move(add_row_down));
+        
+        auto add_col_left = std::make_unique<horizon::MenuItem>("Columna Antes");
+        add_col_left->when_click.connect([this](auto&){ m_editor->insertTableColumnLeft(); invalidate(); });
+        table_menu->add_item(std::move(add_col_left));
+        
+        auto add_col_right = std::make_unique<horizon::MenuItem>("Columna Después");
+        add_col_right->when_click.connect([this](auto&){ m_editor->insertTableColumnRight(); invalidate(); });
+        table_menu->add_item(std::move(add_col_right));
+        
+        auto insert_item = std::make_unique<horizon::MenuItem>("Insertar");
+        insert_item->set_submenu(std::move(table_menu));
+        menu->add_item(std::move(insert_item));
+    }
+
+    return menu;
 }
 
 } // namespace pluma_app
