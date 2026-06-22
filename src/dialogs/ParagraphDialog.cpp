@@ -36,29 +36,32 @@ ParagraphDialog::ParagraphDialog()
   left_pane->set_spacing(10);
 
   // Helper lambda to create a row with a label and a numeric textbox
-  auto create_input_row =
-      [](const std::string &label_text,
-         horizon::TextBox<horizon::DoublePolicy> **out_box) {
-        auto row = std::make_unique<horizon::Widget>();
-        row->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
-        row->set_fixed_size(35);
+  auto create_input_row = [](const std::string &label_text,
+                             horizon::TextBox<horizon::DoublePolicy> **out_box,
+                             double step = 0.1) {
+    auto row = std::make_unique<horizon::Widget>();
+    row->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
+    row->set_fixed_size(35);
 
-        auto label = std::make_unique<horizon::Label>(label_text);
-        label->set_fixed_size(150);
-        row->add_child(std::move(label));
+    auto label = std::make_unique<horizon::Label>(label_text);
+    label->set_fixed_size(150);
+    row->add_child(std::move(label));
 
-        auto box = std::make_unique<horizon::TextBox<horizon::DoublePolicy>>();
-        box->set_position_type(horizon::FILL);
-        *out_box = box.get();
-        row->add_child(std::move(box));
+    auto box = std::make_unique<horizon::TextBox<horizon::DoublePolicy>>();
+    box->set_fixed_size(120);
+    box->config.show_spin_buttons = true;
+    box->config.spin_step = step;
+    *out_box = box.get();
+    row->add_child(std::move(box));
 
-        return row;
-      };
+    return row;
+  };
 
   // Indent section
   auto indent_title = std::make_unique<horizon::Label>(
       horizon::i18n().tr("pluma-writer.paragraph_dialog.indent"));
   indent_title->set_fixed_size(25);
+  indent_title->set_font_weight(horizon::FontWeight::FONT_WEIGHT_BOLD);
   left_pane->add_child(std::move(indent_title));
 
   left_pane->add_child(create_input_row(
@@ -74,6 +77,7 @@ ParagraphDialog::ParagraphDialog()
   // Spacing section
   auto spacing_title = std::make_unique<horizon::Label>(
       horizon::i18n().tr("pluma-writer.paragraph_dialog.spacing"));
+  spacing_title->set_font_weight(horizon::FontWeight::FONT_WEIGHT_BOLD);
   spacing_title->set_fixed_size(25);
   left_pane->add_child(std::move(spacing_title));
 
@@ -88,19 +92,23 @@ ParagraphDialog::ParagraphDialog()
   auto ls_title = std::make_unique<horizon::Label>(
       horizon::i18n().tr("pluma-writer.paragraph_dialog.line_spacing"));
   ls_title->set_fixed_size(25);
+  ls_title->set_font_weight(horizon::FontWeight::FONT_WEIGHT_BOLD);
   left_pane->add_child(std::move(ls_title));
 
   auto ls_row = std::make_unique<horizon::Widget>();
   ls_row->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
   ls_row->set_fixed_size(35);
+  ls_row->set_spacing(10);
 
   auto ls_combo = std::make_unique<horizon::Combo>();
-  ls_combo->set_position_type(horizon::FILL);
+  ls_combo->set_fixed_size(150);
   m_line_spacing_combo = ls_combo.get();
   ls_row->add_child(std::move(ls_combo));
 
   auto ls_box = std::make_unique<horizon::TextBox<horizon::DoublePolicy>>();
-  ls_box->set_position_type(horizon::FILL);
+  ls_box->set_fixed_size(120);
+  ls_box->config.show_spin_buttons = true;
+  ls_box->config.spin_step = 0.1;
   m_line_spacing_value_box = ls_box.get();
   ls_row->add_child(std::move(ls_box));
 
