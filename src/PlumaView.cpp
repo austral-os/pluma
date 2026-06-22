@@ -154,10 +154,12 @@ PlumaView::PlumaView() : horizon::Widget() {
               if (application()) {
                   application()->post_task([this, errors]() {
                       if (m_editor) {
+                          m_editor->suspendLayout();
                           m_editor->clearDecorationGlobally(pluma::TextDecoration::SpellingError);
                           for (const auto& err : errors) {
                               m_editor->applyStyle(err.first, err.second, pluma::PropertyId::Decoration, pluma::TextDecoration::SpellingError);
                           }
+                          m_editor->resumeLayout();
                           invalidate();
                       }
                   });
