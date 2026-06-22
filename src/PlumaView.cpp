@@ -14,6 +14,7 @@
 #include <pluma/Services/SpellCheckerService.hpp>
 #include <pluma/Services/SpellCheckAnalyzer.hpp>
 #include <pluma/dialogs/FontDialog.hpp>
+#include <pluma/dialogs/ParagraphDialog.hpp>
 #include <string>
 #include <fstream>
 #include <unistd.h>
@@ -757,6 +758,7 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                             if (!ev.language.empty()) {
                                 m_editor->applyStyle(start, len, pluma::PropertyId::Language, pluma::PropertyValue(ev.language));
                             }
+                            this->invalidate();
                         }
                     }
                 });
@@ -765,6 +767,56 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
         }
     });
     menu->add_item(std::move(char_item));
+
+    auto paragraph_item = std::make_unique<horizon::MenuItem>(horizon::i18n().tr("pluma-writer.paragraph_dialog.title"));
+    paragraph_item->when_click.connect([this](auto&) {
+        if (application()) {
+            application()->add_timer(50, [this]() {
+                auto dlg = std::make_unique<pluma_app::dialogs::ParagraphDialog>();
+                
+                float indent_before = 0.0f;
+                float indent_after = 0.0f;
+                float indent_first = 0.0f;
+                float spacing_above = 0.0f;
+                float spacing_below = 0.0f;
+                float line_spacing = 1.0f;
+
+                if (m_editor) {
+                    uint32_t head = m_editor->getSelectionRange().head;
+                    auto block_style = m_editor->getFormatRegistry().getStyleAt(head);
+                    
+                    if (auto v = block_style.get(pluma::PropertyId::ParagraphIndentLeft)) indent_before = std::get<float>(*v);
+                    if (auto v = block_style.get(pluma::PropertyId::ParagraphIndentRight)) indent_after = std::get<float>(*v);
+                    if (auto v = block_style.get(pluma::PropertyId::ParagraphIndentFirstLine)) indent_first = std::get<float>(*v);
+                    if (auto v = block_style.get(pluma::PropertyId::ParagraphSpacingBefore)) spacing_above = std::get<float>(*v);
+                    if (auto v = block_style.get(pluma::PropertyId::ParagraphSpacingAfter)) spacing_below = std::get<float>(*v);
+                    if (auto v = block_style.get(pluma::PropertyId::LineSpacing)) line_spacing = std::get<float>(*v);
+                }
+                dlg->set_initial_paragraph(indent_before, indent_after, indent_first, spacing_above, spacing_below, line_spacing);
+
+                dlg->when_accepted.connect([this](pluma_app::dialogs::ParagraphSelectedEvent& ev) {
+                    if (m_editor) {
+                        auto sel = m_editor->getSelectionRange();
+                        uint32_t start = std::min(sel.anchor, sel.head);
+                        uint32_t len = std::max(sel.anchor, sel.head) - start;
+                        
+                        if (len == 0) len = 1;
+                        
+                        m_editor->applyStyle(start, len, pluma::PropertyId::ParagraphIndentLeft, pluma::PropertyValue(ev.indent_before));
+                        m_editor->applyStyle(start, len, pluma::PropertyId::ParagraphIndentRight, pluma::PropertyValue(ev.indent_after));
+                        m_editor->applyStyle(start, len, pluma::PropertyId::ParagraphIndentFirstLine, pluma::PropertyValue(ev.indent_first_line));
+                        m_editor->applyStyle(start, len, pluma::PropertyId::ParagraphSpacingBefore, pluma::PropertyValue(ev.spacing_above));
+                        m_editor->applyStyle(start, len, pluma::PropertyId::ParagraphSpacingAfter, pluma::PropertyValue(ev.spacing_below));
+                        m_editor->applyStyle(start, len, pluma::PropertyId::LineSpacing, pluma::PropertyValue(ev.line_spacing));
+                        
+                        this->invalidate();
+                    }
+                });
+                dlg->run();
+            }, false);
+        }
+    });
+    menu->add_item(std::move(paragraph_item));
 
     return menu;
 }

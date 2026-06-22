@@ -1,4 +1,4 @@
-#include "pluma/widgets/FontPreview.hpp"
+#include "pluma/Widgets/FontPreview.hpp"
 #include <cairo/cairo.h>
 #include <horizon/ThemeManager.hpp>
 

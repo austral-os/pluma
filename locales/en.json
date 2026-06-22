@@ -110,6 +110,23 @@
             "italic": "Italic",
             "bold": "Bold",
             "bold_italic": "Bold Italic"
+        },
+        "paragraph_dialog": {
+            "title": "Paragraph",
+            "indents_spacing": "Indents & Spacing",
+            "alignment": "Alignment",
+            "indent": "Indent",
+            "before_text": "Before text:",
+            "after_text": "After text:",
+            "first_line": "First line:",
+            "spacing": "Spacing",
+            "above_paragraph": "Above paragraph:",
+            "below_paragraph": "Below paragraph:",
+            "line_spacing": "Line Spacing",
+            "ls_single": "Single",
+            "ls_15": "1.5 lines",
+            "ls_double": "Double",
+            "ls_proportional": "Proportional"
         }
     }
 }

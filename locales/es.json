@@ -110,6 +110,23 @@
             "italic": "Cursiva",
             "bold": "Negrita",
             "bold_italic": "Negrita Cursiva"
+        },
+        "paragraph_dialog": {
+            "title": "Párrafo",
+            "indents_spacing": "Sangrías y Espaciado",
+            "alignment": "Alineación",
+            "indent": "Sangría",
+            "before_text": "Antes del texto:",
+            "after_text": "Después del texto:",
+            "first_line": "Primera línea:",
+            "spacing": "Espaciado",
+            "above_paragraph": "Sobre el párrafo:",
+            "below_paragraph": "Debajo del párrafo:",
+            "line_spacing": "Interlineado",
+            "ls_single": "Sencillo",
+            "ls_15": "1,5 líneas",
+            "ls_double": "Doble",
+            "ls_proportional": "Proporcional"
         }
     }
 }

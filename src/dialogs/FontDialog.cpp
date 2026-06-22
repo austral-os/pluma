@@ -1,4 +1,5 @@
 #include "pluma/dialogs/FontDialog.hpp"
+#include <pluma/Widgets/FontPreview.hpp>
 #include "utils/FontUtils.hpp"
 #include <algorithm>
 #include <filesystem>

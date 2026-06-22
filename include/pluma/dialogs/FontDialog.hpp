@@ -6,7 +6,7 @@
 #include <horizon/TextBox.hpp>
 #include <horizon/TableView.hpp>
 #include <horizon/Combo.hpp>
-#include "pluma/widgets/FontPreview.hpp"
+#include <pluma/Widgets/FontPreview.hpp>
 #include <string>
 
 namespace pluma_app {
