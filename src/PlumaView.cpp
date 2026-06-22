@@ -516,7 +516,20 @@ void PlumaView::perform(horizon::ClipboardAction action) {
             triggerAnalysis();
             break;
         case horizon::ClipboardAction::Paste:
-            if (application()) application()->request_clipboard_data(this);
+            if (application()) {
+                auto mimes = application()->get_clipboard_mime_types();
+                bool requested = false;
+                for (const auto& mime : mimes) {
+                    if (mime == "image/png" || mime == "image/jpeg") {
+                        application()->request_clipboard_data(this, mime);
+                        requested = true;
+                        break;
+                    }
+                }
+                if (!requested) {
+                    application()->request_clipboard_data(this, "text/plain");
+                }
+            }
             break;
     }
     
@@ -544,6 +557,30 @@ void PlumaView::on_clipboard_data_received(const std::string &mime, const std::v
                 parent()->invalidate();
             }
             triggerAnalysis();
+        }
+    } else if (mime == "image/png" || mime == "image/jpeg") {
+        if (m_editor && !data.empty()) {
+            std::string ext = (mime == "image/png") ? ".png" : ".jpg";
+            std::string temp_template_str = "/tmp/pluma_pasted_XXXXXX" + ext;
+            char temp_template[64];
+            strncpy(temp_template, temp_template_str.c_str(), sizeof(temp_template));
+            
+            int fd = mkstemps(temp_template, 4);
+            if (fd != -1) {
+                write(fd, data.data(), data.size());
+                close(fd);
+                
+                std::string temp_path(temp_template);
+                std::string img_tag = "\n|IMAGE:InLine:" + temp_path + "|\n";
+                m_editor->insertTextAtCursor(img_tag);
+                calculate_layout();
+                invalidate();
+                if (parent()) {
+                    parent()->calculate_layout();
+                    parent()->invalidate();
+                }
+                triggerAnalysis();
+            }
         }
     }
     

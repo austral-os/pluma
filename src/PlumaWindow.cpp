@@ -730,7 +730,7 @@ void PlumaWindow::create_tab(const std::string &title,
           m_file_dialog = std::make_unique<horizon::FileDialog>(horizon::FileDialogMode::Open, horizon::i18n().tr("pluma-writer.dialogs.insert_image_title"));
           m_file_dialog->when_accepted.connect([this, view_ptr](horizon::FileDialogAcceptedContext& ctx_acc) {
             auto editor = view_ptr->editor();
-            std::string img_tag = "\n|IMAGE:" + ctx_acc.selected_path + "|\n";
+            std::string img_tag = "\n|IMAGE:InLine:" + ctx_acc.selected_path + "|\n";
             editor->insertTextAtCursor(img_tag);
             view_ptr->calculate_layout();
             view_ptr->invalidate();
