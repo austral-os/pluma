@@ -16,6 +16,7 @@ public:
 
   horizon::RibbonButton* btn_table() const { return m_btn_table; }
   horizon::RibbonButton* btn_image() const { return m_btn_image; }
+  horizon::RibbonButton* btn_hline() const { return m_btn_hline; }
 
   horizon::RibbonButton* btn_hyperlink() const { return m_btn_hyperlink; }
   horizon::RibbonButton* btn_bookmark() const { return m_btn_bookmark; }
@@ -37,6 +38,7 @@ private:
   horizon::RibbonSection *m_section_image = nullptr;
   horizon::RibbonSection *m_section_links = nullptr;
   horizon::RibbonSection *m_section_fields = nullptr;
+  horizon::RibbonSection *m_section_otros = nullptr;
 
   horizon::RibbonButton *m_btn_page_break = nullptr;
   horizon::RibbonButton *m_btn_blank_page = nullptr;
@@ -44,6 +46,7 @@ private:
 
   horizon::RibbonButton *m_btn_table = nullptr;
   horizon::RibbonButton *m_btn_image = nullptr;
+  horizon::RibbonButton *m_btn_hline = nullptr;
 
   horizon::RibbonButton *m_btn_hyperlink = nullptr;
   horizon::RibbonButton *m_btn_bookmark = nullptr;

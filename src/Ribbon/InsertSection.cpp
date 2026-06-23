@@ -171,6 +171,15 @@ InsertSection::InsertSection(horizon::RibbonToolbar *ribbon, int tab_index) {
 
   m_btn_field = btn_field.get();
   m_section_fields->add_widget(std::move(btn_field));
+
+  // Otros Section
+  m_section_otros = ribbon->add_section(tab_index, "Otros");
+  auto btn_hline = std::make_unique<horizon::RibbonButton>();
+  btn_hline->set_text("Line");
+  btn_hline->set_icon("pluma-ins-hline");
+  btn_hline->set_button_size(horizon::RibbonButtonSize::Large);
+  m_btn_hline = btn_hline.get();
+  m_section_otros->add_widget(std::move(btn_hline));
 }
 
 } // namespace pluma_app

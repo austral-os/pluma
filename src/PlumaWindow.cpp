@@ -771,6 +771,26 @@ void PlumaWindow::create_tab(const std::string &title,
   bind_image_button(m_home_sections.back()->btn_image());
   bind_image_button(m_insert_sections.back()->btn_image());
 
+  auto bind_hline_button = [this, view_ptr = raw_view_ptr](horizon::RibbonButton* btn) {
+    if (!btn) return;
+    btn->when_mouse_press.connect(
+        [this, view_ptr](horizon::MouseButtonEventContext &) {
+          LOG_INFO << "Horizontal line button pressed!";
+          if (view_ptr && view_ptr->editor()) {
+            auto editor = view_ptr->editor();
+            editor->insertHorizontalLine();
+            view_ptr->calculate_layout();
+            view_ptr->invalidate();
+            if (view_ptr->parent()) {
+              view_ptr->parent()->calculate_layout();
+              view_ptr->parent()->invalidate();
+            }
+          }
+        });
+  };
+
+  bind_hline_button(m_insert_sections.back()->btn_hline());
+
   // ── Insert Table vault ──────────────────────────────────────────────────
   auto bind_table_vault = [this, view_ptr = raw_view_ptr](horizon::RibbonButton* btn) {
     btn->when_mouse_press.connect(
