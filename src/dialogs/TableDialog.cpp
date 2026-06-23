@@ -3,6 +3,7 @@
 #include <horizon/Button.hpp>
 #include <horizon/ColorSelector.hpp>
 #include <horizon/I18n.hpp>
+#include <horizon/Icon.hpp>
 #include <horizon/Label.hpp>
 #include <horizon/Notification.hpp>
 #include <horizon/Spacer.hpp>
@@ -17,19 +18,22 @@ namespace pluma_app {
 namespace dialogs {
 
 TableDialog::TableDialog()
-    : horizon::WaylandWindow("pluma.dialog.table", 670, 490, false, false) {
+    : horizon::WaylandWindow("pluma.dialog.table", 700, 490, false, false) {
 
   auto create_input_row = [](const std::string &label_text,
-                             std::unique_ptr<horizon::Widget> widget) {
+                             std::unique_ptr<horizon::Widget> widget,
+                             float width = 200) {
     auto row = std::make_unique<horizon::Widget>();
     row->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
-    row->set_fixed_size(35);
+    row->set_fixed_size(38);
 
     auto label = std::make_unique<horizon::Label>(label_text);
     label->set_fixed_size(150);
     row->add_child(std::move(label));
 
-    widget->set_fixed_size(150);
+    if (width > 0) {
+      widget->set_fixed_size(width);
+    }
     row->add_child(std::move(widget));
     return row;
   };
@@ -68,13 +72,20 @@ TableDialog::TableDialog()
 
   auto btn_presets = std::make_unique<MultiToggleGroupButton>();
   // Icons for each preset
-  btn_presets->add_item("", "pluma-tbl-brd-none", 32, 32);
-  btn_presets->add_item("", "pluma-tbl-brd-outer", 32, 32);
-  btn_presets->add_item("", "pluma-tbl-brd-outer-h", 32, 32);
-  btn_presets->add_item("", "pluma-tbl-brd-outer-all", 32, 32);
-  btn_presets->add_item("", "pluma-tbl-brd-outer-wocil", 32, 32);
+  auto add_preset = [&](const std::string &icon_name) {
+    auto icon = std::make_unique<horizon::Icon>();
+    icon->set_icon_name(icon_name);
+    icon->set_icon_size(
+        24); // SVG might be 16x16 natively, scaling up to 24 is safe.
+    icon->set_use_theme_colors(false);
+    btn_presets->add_item(std::move(icon), 40);
+  };
 
-  btn_presets->set_fixed_size(30);
+  add_preset("pluma-tbl-brd-none");
+  add_preset("pluma-tbl-brd-outer");
+  add_preset("pluma-tbl-brd-outer-h");
+  add_preset("pluma-tbl-brd-outer-all");
+  add_preset("pluma-tbl-brd-outer-wocil");
 
   auto set_tooltip = [](horizon::Widget *w, const std::string &msg) {
     auto t = std::make_unique<horizon::Notification>();
@@ -100,7 +111,7 @@ TableDialog::TableDialog()
 
   left_pane->add_child(
       create_input_row(horizon::i18n().tr("pluma-writer.table_dialog.presets"),
-                       std::move(btn_presets)));
+                       std::move(btn_presets), 210));
 
   auto lbl_line = std::make_unique<horizon::Label>(
       horizon::i18n().tr("pluma-writer.table_dialog.line"));
@@ -151,6 +162,10 @@ TableDialog::TableDialog()
 
   static_cast<horizon::GroupButton *>(m_presets_group)
       ->when_button_clicked.connect([this](horizon::GroupButtonClickEvent &ev) {
+        for (int i = 0; i < 5; ++i) {
+          static_cast<MultiToggleGroupButton *>(m_presets_group)
+              ->set_item_active(i, i == ev.button_index);
+        }
         if (m_preview)
           m_preview->set_preset(ev.button_index);
       });
