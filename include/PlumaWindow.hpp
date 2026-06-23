@@ -7,6 +7,7 @@
 #include "Ribbon/PageLayoutSection.hpp"
 #include "Ribbon/ImageFormatSection.hpp"
 #include "Ribbon/TableLayoutSection.hpp"
+#include "Ribbon/InsertSection.hpp"
 #include <memory>
 #include <string>
 #include <vector>
@@ -34,6 +35,7 @@ private:
 
     horizon::TabCollection* m_tabs = nullptr;
     std::vector<std::unique_ptr<HomeSection>> m_home_sections;
+    std::vector<std::unique_ptr<InsertSection>> m_insert_sections;
     std::vector<std::unique_ptr<PageLayoutSection>> m_page_layout_sections;
     std::vector<std::unique_ptr<ImageFormatSection>> m_image_format_sections;
     std::vector<std::unique_ptr<TableLayoutSection>> m_table_layout_sections;

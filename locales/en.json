@@ -15,6 +15,7 @@
         },
         "tabs": {
             "home": "Home",
+            "insert": "Insert",
             "page_layout": "Page Layout",
             "image_format": "Image Format"
         },

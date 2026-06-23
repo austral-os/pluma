@@ -348,6 +348,7 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
     m_tabs->remove_tab(index);
     if (index >= 0 && index < m_home_sections.size()) {
       m_home_sections.erase(m_home_sections.begin() + index);
+      m_insert_sections.erase(m_insert_sections.begin() + index);
       m_page_layout_sections.erase(m_page_layout_sections.begin() + index);
     }
     if (m_tabs->tab_count() == 0) {
@@ -412,6 +413,10 @@ void PlumaWindow::create_tab(const std::string &title,
   auto table_sec = std::make_unique<TableLayoutSection>(ribbon.get(), t4);
   m_table_layout_sections.push_back(std::move(table_sec));
   ribbon->set_tab_visible(t4, false);
+
+  int t_insert = ribbon->add_tab(horizon::i18n().tr("pluma-writer.tabs.insert"));
+  auto insert_sec = std::make_unique<InsertSection>(ribbon.get(), t_insert);
+  m_insert_sections.push_back(std::move(insert_sec));
 
   tab_container->add_child(std::move(ribbon));
 
@@ -723,36 +728,41 @@ void PlumaWindow::create_tab(const std::string &title,
         }
       });
 
-  m_home_sections.back()->btn_image()->when_mouse_press.connect(
-      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &ctx) {
-        LOG_INFO << "Image button pressed!";
-        if (view_ptr && view_ptr->editor()) {
-          m_file_dialog = std::make_unique<horizon::FileDialog>(horizon::FileDialogMode::Open, horizon::i18n().tr("pluma-writer.dialogs.insert_image_title"));
-          m_file_dialog->when_accepted.connect([this, view_ptr](horizon::FileDialogAcceptedContext& ctx_acc) {
-            auto editor = view_ptr->editor();
-            std::string img_tag = "\n|IMAGE:InLine:" + ctx_acc.selected_path + "|\n";
-            editor->insertTextAtCursor(img_tag);
-            view_ptr->calculate_layout();
-            view_ptr->invalidate();
-            if (view_ptr->parent()) {
-              view_ptr->parent()->calculate_layout();
-              view_ptr->parent()->invalidate();
-            }
-            m_file_dialog->quit();
-          });
-          m_file_dialog->when_cancelled.connect([this](horizon::FileDialogCancelledContext&) {
-            m_file_dialog->quit();
-          });
-          
-          m_file_dialog->run();
-          m_file_dialog.reset();
-        }
-      });
+  auto bind_image_button = [this, view_ptr = raw_view_ptr](horizon::RibbonButton* btn) {
+    btn->when_mouse_press.connect(
+        [this, view_ptr](horizon::MouseButtonEventContext &ctx) {
+          LOG_INFO << "Image button pressed!";
+          if (view_ptr && view_ptr->editor()) {
+            m_file_dialog = std::make_unique<horizon::FileDialog>(horizon::FileDialogMode::Open, horizon::i18n().tr("pluma-writer.dialogs.insert_image_title"));
+            m_file_dialog->when_accepted.connect([this, view_ptr](horizon::FileDialogAcceptedContext& ctx_acc) {
+              auto editor = view_ptr->editor();
+              std::string img_tag = "\n|IMAGE:InLine:" + ctx_acc.selected_path + "|\n";
+              editor->insertTextAtCursor(img_tag);
+              view_ptr->calculate_layout();
+              view_ptr->invalidate();
+              if (view_ptr->parent()) {
+                view_ptr->parent()->calculate_layout();
+                view_ptr->parent()->invalidate();
+              }
+              m_file_dialog->quit();
+            });
+            m_file_dialog->when_cancelled.connect([this](horizon::FileDialogCancelledContext&) {
+              m_file_dialog->quit();
+            });
+            
+            m_file_dialog->run();
+            m_file_dialog.reset();
+          }
+        });
+  };
+
+  bind_image_button(m_home_sections.back()->btn_image());
+  bind_image_button(m_insert_sections.back()->btn_image());
 
   // ── Insert Table vault ──────────────────────────────────────────────────
-  m_home_sections.back()->btn_table()->when_mouse_press.connect(
-      [this, view_ptr = raw_view_ptr,
-       home_ptr = raw_home_ptr](horizon::MouseButtonEventContext &) {
+  auto bind_table_vault = [this, view_ptr = raw_view_ptr](horizon::RibbonButton* btn) {
+    btn->when_mouse_press.connect(
+        [this, view_ptr, btn](horizon::MouseButtonEventContext &) {
         constexpr int ROWS = 8;
         constexpr int COLS = 10;
 
@@ -848,8 +858,12 @@ void PlumaWindow::create_tab(const std::string &title,
         content->set_size(vault_w, vault_h);
         vault->set_content(std::move(content));
         application()->show_vault(vault.release(), -1, -1, 0,
-                                  home_ptr->btn_table());
+                                  btn);
       });
+  };
+
+  bind_table_vault(m_home_sections.back()->btn_table());
+  bind_table_vault(m_insert_sections.back()->btn_table());
   // ── End Insert Table vault ─────────────────────────────────────────────
 
   m_home_sections.back()->group_lists()->when_button_clicked.connect(
