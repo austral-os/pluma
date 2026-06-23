@@ -22,6 +22,11 @@ public:
   horizon::RibbonButton* btn_cross_ref() const { return m_btn_cross_ref; }
 
   horizon::RibbonButton* btn_field() const { return m_btn_field; }
+  horizon::RibbonButton* btn_field_page() const { return m_btn_field_page; }
+  horizon::RibbonButton* btn_field_date() const { return m_btn_field_date; }
+  horizon::RibbonButton* btn_field_time() const { return m_btn_field_time; }
+  horizon::RibbonButton* btn_field_title() const { return m_btn_field_title; }
+  horizon::RibbonButton* btn_field_author() const { return m_btn_field_author; }
 
 private:
   horizon::RibbonSection *m_section_page = nullptr;
@@ -42,6 +47,11 @@ private:
   horizon::RibbonButton *m_btn_cross_ref = nullptr;
 
   horizon::RibbonButton *m_btn_field = nullptr;
+  horizon::RibbonButton *m_btn_field_page = nullptr;
+  horizon::RibbonButton *m_btn_field_date = nullptr;
+  horizon::RibbonButton *m_btn_field_time = nullptr;
+  horizon::RibbonButton *m_btn_field_title = nullptr;
+  horizon::RibbonButton *m_btn_field_author = nullptr;
 };
 
 } // namespace pluma_app

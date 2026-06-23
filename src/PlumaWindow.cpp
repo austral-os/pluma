@@ -2,6 +2,7 @@
 #include "MainToolbar.hpp"
 #include "Ribbon/HomeSection.hpp"
 #include <filesystem>
+#include <glib.h>
 #include <horizon/GraphicsContext.hpp>
 #include <horizon/Label.hpp>
 #include <horizon/Logger.hpp>
@@ -374,7 +375,18 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
 
   set_content(std::move(tabs));
 
-  setup_events();
+    // 1-minute timer to refresh dynamic fields (like TIME)
+    g_timeout_add_seconds(60, [](gpointer data) -> gboolean {
+        auto* self = static_cast<PlumaWindow*>(data);
+        auto* view = self->get_current_view();
+        if (view && view->editor()) {
+            view->editor()->updateLayout();
+            view->invalidate();
+        }
+        return G_SOURCE_CONTINUE;
+    }, this);
+
+    setup_events();
 
   if (!initial_file.empty()) {
     std::filesystem::path p(initial_file);
@@ -872,6 +884,7 @@ void PlumaWindow::create_tab(const std::string &title,
         if (view_ptr && view_ptr->editor()) {
           auto editor = view_ptr->editor();
           editor->insertTextAtCursor("\n|PAGEBREAK|\n");
+          view_ptr->set_focus(true);
         }
       });
 
@@ -880,6 +893,7 @@ void PlumaWindow::create_tab(const std::string &title,
         if (view_ptr && view_ptr->editor()) {
           auto editor = view_ptr->editor();
           editor->insertTextAtCursor("\n|BLANKPAGE|\n");
+          view_ptr->set_focus(true);
         }
       });
 
@@ -888,6 +902,52 @@ void PlumaWindow::create_tab(const std::string &title,
         if (view_ptr && view_ptr->editor()) {
           auto editor = view_ptr->editor();
           editor->insertTextAtCursor("\v");
+          view_ptr->set_focus(true);
+        }
+      });
+
+  m_insert_sections.back()->btn_field_page()->when_click.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->insertTextAtCursor("|FIELD:PAGE|");
+          application()->close_vault();
+          view_ptr->set_focus(true);
+        }
+      });
+
+  m_insert_sections.back()->btn_field_date()->when_click.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->insertTextAtCursor("|FIELD:DATE|");
+          application()->close_vault();
+          view_ptr->set_focus(true);
+        }
+      });
+
+  m_insert_sections.back()->btn_field_time()->when_click.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->insertTextAtCursor("|FIELD:TIME|");
+          application()->close_vault();
+          view_ptr->set_focus(true);
+        }
+      });
+
+  m_insert_sections.back()->btn_field_title()->when_click.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->insertTextAtCursor("|FIELD:TITLE|");
+          application()->close_vault();
+          view_ptr->set_focus(true);
+        }
+      });
+
+  m_insert_sections.back()->btn_field_author()->when_click.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->insertTextAtCursor("|FIELD:AUTHOR|");
+          application()->close_vault();
+          view_ptr->set_focus(true);
         }
       });
   // ────────────────────────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 #include "Ribbon/InsertSection.hpp"
+#include <horizon/I18n.hpp>
 #include <horizon/Icon.hpp>
 #include <horizon/Label.hpp>
 #include <horizon/RibbonButton.hpp>
@@ -120,7 +121,7 @@ InsertSection::InsertSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   vault_content->set_margin(8);
   vault_content->set_size(180, 160);
 
-  auto create_field_item = [this](const std::string &name) {
+  auto create_field_item = [](const std::string &name) {
     auto btn = std::make_unique<horizon::RibbonButton>();
     btn->set_text(name);
     btn->set_button_size(horizon::RibbonButtonSize::Small);
@@ -128,10 +129,25 @@ InsertSection::InsertSection(horizon::RibbonToolbar *ribbon, int tab_index) {
     return btn;
   };
 
-  vault_content->add_child(create_field_item("Page number"));
-  vault_content->add_child(create_field_item("Page count"));
-  vault_content->add_child(create_field_item("Date"));
-  vault_content->add_child(create_field_item("Time"));
+  auto btn_page = create_field_item(horizon::i18n().tr("pluma-writer.fields.page_number"));
+  m_btn_field_page = btn_page.get();
+  vault_content->add_child(std::move(btn_page));
+  
+  auto btn_date = create_field_item(horizon::i18n().tr("pluma-writer.fields.date"));
+  m_btn_field_date = btn_date.get();
+  vault_content->add_child(std::move(btn_date));
+
+  auto btn_time = create_field_item(horizon::i18n().tr("pluma-writer.fields.time"));
+  m_btn_field_time = btn_time.get();
+  vault_content->add_child(std::move(btn_time));
+
+  auto btn_title = create_field_item(horizon::i18n().tr("pluma-writer.fields.title"));
+  m_btn_field_title = btn_title.get();
+  vault_content->add_child(std::move(btn_title));
+
+  auto btn_author = create_field_item(horizon::i18n().tr("pluma-writer.fields.author"));
+  m_btn_field_author = btn_author.get();
+  vault_content->add_child(std::move(btn_author));
 
   vault->set_content(std::move(vault_content));
   btn_field->set_vault(std::move(vault));

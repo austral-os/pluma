@@ -131,6 +131,13 @@
         },
         "context_menu": {
             "delete_blank_page": "Eliminar página en blanco"
+        },
+        "fields": {
+            "page_number": "Número de página",
+            "date": "Fecha",
+            "time": "Hora",
+            "title": "Título",
+            "author": "Autor"
         }
     }
 }
