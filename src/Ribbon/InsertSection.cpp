@@ -106,6 +106,23 @@ InsertSection::InsertSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   col_wrapper_links->add_child(std::move(col_links));
   m_section_links->add_widget(std::move(col_wrapper_links));
 
+  // Header & Footer Section
+  m_section_header_footer = ribbon->add_section(tab_index, horizon::i18n().tr("pluma-writer.ribbon.header_footer"));
+  
+  auto btn_header = std::make_unique<horizon::RibbonButton>();
+  btn_header->set_text(horizon::i18n().tr("pluma-writer.ribbon.header"));
+  btn_header->set_icon("pluma-ins-header");
+  btn_header->set_button_size(horizon::RibbonButtonSize::Large);
+  m_btn_header = btn_header.get();
+  m_section_header_footer->add_widget(std::move(btn_header));
+
+  auto btn_footer = std::make_unique<horizon::RibbonButton>();
+  btn_footer->set_text(horizon::i18n().tr("pluma-writer.ribbon.footer"));
+  btn_footer->set_icon("pluma-ins-footer");
+  btn_footer->set_button_size(horizon::RibbonButtonSize::Large);
+  m_btn_footer = btn_footer.get();
+  m_section_header_footer->add_widget(std::move(btn_footer));
+
   // Fields Section
   m_section_fields = ribbon->add_section(tab_index, "Fields");
   auto btn_field = std::make_unique<horizon::RibbonButton>();

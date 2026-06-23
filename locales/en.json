@@ -87,7 +87,10 @@
             "save": "Save",
             "undo": "Undo",
             "redo": "Redo",
-            "search": "Search"
+            "search": "Search",
+            "header_footer": "Header & Footer",
+            "header": "Header",
+            "footer": "Footer"
         },
         "table": {
             "split_cells": "Split Cells",

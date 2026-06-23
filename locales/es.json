@@ -87,7 +87,10 @@
             "save": "Guardar",
             "undo": "Deshacer",
             "redo": "Rehacer",
-            "search": "Buscar"
+            "search": "Buscar",
+            "header_footer": "Encabezado y pie de página",
+            "header": "Encabezado",
+            "footer": "Pie de página"
         },
         "table": {
             "split_cells": "Dividir celdas",

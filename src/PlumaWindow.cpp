@@ -878,6 +878,39 @@ void PlumaWindow::create_tab(const std::string &title,
   bind_table_vault(m_insert_sections.back()->btn_table());
   // ── End Insert Table vault ─────────────────────────────────────────────
 
+  // ── Insert Header & Footer Section buttons ──────────────────────────────────
+  m_insert_sections.back()->btn_header()->when_mouse_press.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          auto scroll = dynamic_cast<horizon::ScrollArea*>(view_ptr->parent());
+          if (scroll) {
+            double local_y = scroll->scroll_y();
+            auto page_idx = editor->getPageFromY(pluma::Twips(local_y / view_ptr->get_zoom() * 15.0f));
+            editor->setActivePageIndex(page_idx);
+          }
+          editor->setActiveRegion(pluma::DocumentRegion::Header);
+          view_ptr->set_focus(true);
+          view_ptr->invalidate();
+        }
+      });
+
+  m_insert_sections.back()->btn_footer()->when_mouse_press.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          auto scroll = dynamic_cast<horizon::ScrollArea*>(view_ptr->parent());
+          if (scroll) {
+            double local_y = scroll->scroll_y();
+            auto page_idx = editor->getPageFromY(pluma::Twips(local_y / view_ptr->get_zoom() * 15.0f));
+            editor->setActivePageIndex(page_idx);
+          }
+          editor->setActiveRegion(pluma::DocumentRegion::Footer);
+          view_ptr->set_focus(true);
+          view_ptr->invalidate();
+        }
+      });
+
   // ── Insert Page Section buttons ─────────────────────────────────────────────
   m_insert_sections.back()->btn_page_break()->when_mouse_press.connect(
       [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
