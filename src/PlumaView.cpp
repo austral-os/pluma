@@ -651,6 +651,21 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
     auto menu = std::make_unique<horizon::Menu>();
     if (!m_editor) return menu;
 
+    auto blank_page_opt = m_editor->getBlankPageOffsetAtY(pluma::Twips(local_y / m_zoom * 15.0f));
+    if (blank_page_opt.has_value()) {
+        uint32_t offset = *blank_page_opt;
+        auto del_item = std::make_unique<horizon::MenuItem>(horizon::i18n().tr("pluma-writer.context_menu.delete_blank_page"));
+        del_item->when_click.connect([this, offset](auto&) {
+            if (m_editor) {
+                m_editor->deleteBlankPage(offset);
+                calculate_layout();
+                invalidate();
+            }
+        });
+        menu->add_item(std::move(del_item));
+        menu->add_separator();
+    }
+
     uint32_t head = m_editor->getSelectionRange().head;
     auto style = m_editor->getFormatRegistry().getStyleAt(head);
     

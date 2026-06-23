@@ -128,6 +128,9 @@
             "ls_15": "1.5 lines",
             "ls_double": "Double",
             "ls_proportional": "Proportional"
+        },
+        "context_menu": {
+            "delete_blank_page": "Delete Blank Page"
         }
     }
 }
