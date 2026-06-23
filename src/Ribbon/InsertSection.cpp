@@ -149,6 +149,10 @@ InsertSection::InsertSection(horizon::RibbonToolbar *ribbon, int tab_index) {
   auto btn_page = create_field_item(horizon::i18n().tr("pluma-writer.fields.page_number"));
   m_btn_field_page = btn_page.get();
   vault_content->add_child(std::move(btn_page));
+
+  auto btn_page_count = create_field_item(horizon::i18n().tr("pluma-writer.fields.page_count"));
+  m_btn_field_page_count = btn_page_count.get();
+  vault_content->add_child(std::move(btn_page_count));
   
   auto btn_date = create_field_item(horizon::i18n().tr("pluma-writer.fields.date"));
   m_btn_field_date = btn_date.get();

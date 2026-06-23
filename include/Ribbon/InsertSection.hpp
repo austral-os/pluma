@@ -27,6 +27,7 @@ public:
 
   horizon::RibbonButton* btn_field() const { return m_btn_field; }
   horizon::RibbonButton* btn_field_page() const { return m_btn_field_page; }
+  horizon::RibbonButton* btn_field_page_count() const { return m_btn_field_page_count; }
   horizon::RibbonButton* btn_field_date() const { return m_btn_field_date; }
   horizon::RibbonButton* btn_field_time() const { return m_btn_field_time; }
   horizon::RibbonButton* btn_field_title() const { return m_btn_field_title; }
@@ -58,6 +59,7 @@ private:
 
   horizon::RibbonButton *m_btn_field = nullptr;
   horizon::RibbonButton *m_btn_field_page = nullptr;
+  horizon::RibbonButton *m_btn_field_page_count = nullptr;
   horizon::RibbonButton *m_btn_field_date = nullptr;
   horizon::RibbonButton *m_btn_field_time = nullptr;
   horizon::RibbonButton *m_btn_field_title = nullptr;

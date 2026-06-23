@@ -968,6 +968,15 @@ void PlumaWindow::create_tab(const std::string &title,
         }
       });
 
+  m_insert_sections.back()->btn_field_page_count()->when_click.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          view_ptr->editor()->insertTextAtCursor("|FIELD:PAGECOUNT|");
+          application()->close_vault();
+          view_ptr->set_focus(true);
+        }
+      });
+
   m_insert_sections.back()->btn_field_date()->when_click.connect(
       [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
         if (view_ptr && view_ptr->editor()) {

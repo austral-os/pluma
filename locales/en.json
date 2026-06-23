@@ -168,6 +168,7 @@
         },
         "fields": {
             "page_number": "Page number",
+            "page_count": "Page count",
             "date": "Date",
             "time": "Time",
             "title": "Title",
