@@ -20,10 +20,13 @@ public:
   horizon::EventsManager<int> when_split_cells_horizontally_clicked;
   horizon::EventsManager<int> when_split_cells_vertically_clicked;
   horizon::EventsManager<int> when_split_table_clicked;
+  
+  horizon::EventsManager<int> when_properties_clicked;
 
 private:
   horizon::RibbonSection *m_section_rows_cols = nullptr;
   horizon::RibbonSection *m_section_merge = nullptr;
+  horizon::RibbonSection *m_section_properties = nullptr;
   
   horizon::RibbonButton* m_btn_insert_above = nullptr;
   horizon::RibbonButton* m_btn_insert_below = nullptr;
@@ -33,6 +36,8 @@ private:
   horizon::RibbonButton* m_btn_merge_cells = nullptr;
   horizon::RibbonButton* m_btn_split_cells = nullptr;
   horizon::RibbonButton* m_btn_split_table = nullptr;
+  
+  horizon::RibbonButton* m_btn_properties = nullptr;
 };
 
 } // namespace pluma_app

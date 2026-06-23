@@ -89,6 +89,18 @@ TableLayoutSection::TableLayoutSection(horizon::RibbonToolbar *ribbon, int tab_i
   m_btn_split_cells->set_vault(std::move(vault));
 
   m_section_merge->add_widget(std::move(merge_container));
+
+  m_section_properties = ribbon->add_section(tab_index, horizon::i18n().tr("pluma-writer.table.properties"));
+  
+  auto prop_container = std::make_unique<horizon::Widget>();
+  prop_container->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
+  prop_container->set_spacing(4);
+  prop_container->set_fixed_size(70);
+
+  prop_container->add_child(create_button(horizon::i18n().tr("pluma-writer.table.properties"), "pluma-table", m_btn_properties));
+  m_btn_properties->when_click.connect([this](auto&) { int dummy = 0; when_properties_clicked.run(dummy); });
+
+  m_section_properties->add_widget(std::move(prop_container));
 }
 
 } // namespace pluma_app

@@ -15,6 +15,7 @@
 #include <pluma/Services/SpellCheckAnalyzer.hpp>
 #include <pluma/dialogs/FontDialog.hpp>
 #include <pluma/dialogs/ParagraphDialog.hpp>
+#include <pluma/dialogs/TableDialog.hpp>
 #include <string>
 #include <fstream>
 #include <unistd.h>
@@ -759,6 +760,24 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
         auto insert_item = std::make_unique<horizon::MenuItem>("Insertar");
         insert_item->set_submenu(std::move(table_menu));
         menu->add_item(std::move(insert_item));
+        
+        menu->add_separator();
+        
+        auto props_item = std::make_unique<horizon::MenuItem>(horizon::i18n().tr("pluma-writer.table_dialog.title"));
+        props_item->when_click.connect([this](auto&) {
+            if (application()) {
+                application()->add_timer(50, [this]() {
+                    auto dlg = std::make_unique<pluma_app::dialogs::TableDialog>();
+                    dlg->when_accepted.connect([this](pluma_app::dialogs::TableBordersEvent& ev) {
+                        // TODO: Apply borders to table
+                    });
+                    dlg->run();
+                }, false);
+            }
+        });
+        menu->add_item(std::move(props_item));
+        
+        menu->add_separator();
     }
 
     auto char_item = std::make_unique<horizon::MenuItem>(horizon::i18n().tr("pluma-writer.font_dialog.character"));
