@@ -1,7 +1,7 @@
 {
     "pluma-writer": {
         "title": "Pluma Writer",
-        "description": "Un editor de texto enriquecido moderno para Horizon.",
+        "description": "Un procesador de textos moderno para Horizon.",
         "dialogs": {
             "open_title": "Abrir Documento Pluma",
             "export_pdf_title": "Exportar a PDF",

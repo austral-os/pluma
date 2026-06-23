@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 Name=Pluma Writer
-Comment=Pluma Rich Text Editor
+Comment=Pluma Word Processor
 Exec=pluma-writer %F
 Icon=pluma-writer
 Terminal=false
