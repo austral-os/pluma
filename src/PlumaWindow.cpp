@@ -866,6 +866,32 @@ void PlumaWindow::create_tab(const std::string &title,
   bind_table_vault(m_insert_sections.back()->btn_table());
   // ── End Insert Table vault ─────────────────────────────────────────────
 
+  // ── Insert Page Section buttons ─────────────────────────────────────────────
+  m_insert_sections.back()->btn_page_break()->when_mouse_press.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          editor->insertTextAtCursor("\n|PAGEBREAK|\n");
+        }
+      });
+
+  m_insert_sections.back()->btn_blank_page()->when_mouse_press.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          editor->insertTextAtCursor("\n|BLANKPAGE|\n");
+        }
+      });
+
+  m_insert_sections.back()->btn_line_break()->when_mouse_press.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          editor->insertTextAtCursor("\v");
+        }
+      });
+  // ────────────────────────────────────────────────────────────────────────
+
   m_home_sections.back()->group_lists()->when_button_clicked.connect(
       [this, view_ptr = raw_view_ptr, home_ptr = raw_home_ptr](horizon::GroupButtonClickEvent &ctx) {
         if (view_ptr && view_ptr->editor()) {

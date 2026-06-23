@@ -281,6 +281,8 @@ PlumaView::PlumaView() : horizon::Widget() {
       if (ctx.keysym == 0xff0d || ctx.keysym == 0xff8d) { // Return or KP_Enter
         m_editor->onTextInput("\n");
         handled = true;
+      } else if (ctx.keysym == 0xff1b) { // Escape
+        // Ignore escape key to prevent inserting the escape character
       } else if (!ctx.text.empty() && !(ctx.modifiers & (horizon::WaylandWindow::Modifier::CTRL | horizon::WaylandWindow::Modifier::ALT))) {
         std::string text = ctx.text;
         if (text == "\r")
@@ -454,14 +456,20 @@ void PlumaView::calculate_layout() {
 
 
 int PlumaView::preferred_width() const {
+  if (m_editor) {
+      return (m_editor->getDocumentBounds().width.getValue() / 15.0f) * m_zoom;
+  }
   return 800 * m_zoom; // default A4 width in pixels
 }
 
 int PlumaView::preferred_height() const {
+  if (m_editor) {
+      return (m_editor->getDocumentBounds().height.getValue() / 15.0f) * m_zoom;
+  }
   return 1120 * m_zoom; // default A4 height in pixels
 }
 
-int PlumaView::preferred_height(int /*width*/) const { return 1120 * m_zoom; }
+int PlumaView::preferred_height(int /*width*/) const { return preferred_height(); }
 
 bool PlumaView::load_document(const std::string &path) {
   if (!m_editor)
