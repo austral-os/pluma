@@ -204,6 +204,33 @@ PlumaView::PlumaView() : horizon::Widget() {
     }
   });
 
+  when_dbl_click.connect([this](horizon::MouseButtonEventContext &ctx) {
+    if (application()) {
+      application()->set_focused_widget(this);
+    }
+
+    double local_x = (ctx.x - x()) / m_zoom;
+    double local_y = (ctx.y - y()) / m_zoom;
+
+    if (local_x > width() - 20 || local_y > height() - 20) {
+      return;
+    }
+
+    if (m_editor) {
+      pluma::MouseButton pbtn = pluma::MouseButton::None;
+      if (ctx.button == 272 || ctx.button == 1)
+        pbtn = pluma::MouseButton::Left;
+      else if (ctx.button == 274 || ctx.button == 3)
+        pbtn = pluma::MouseButton::Middle;
+
+      if (pbtn != pluma::MouseButton::None) {
+          m_editor->onMouseDoubleClick(local_x, local_y, pbtn,
+                                       static_cast<pluma::ModifierFlags>(ctx.modifiers));
+          invalidate();
+      }
+    }
+  });
+
   when_right_click.connect([this](horizon::MouseButtonEventContext &ctx) {
     if (application()) {
       application()->set_focused_widget(this);
