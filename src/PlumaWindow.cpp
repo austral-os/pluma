@@ -416,6 +416,10 @@ void PlumaWindow::create_tab(const std::string &title,
   auto layout_sec = std::make_unique<PageLayoutSection>(ribbon.get(), t2);
   m_page_layout_sections.push_back(std::move(layout_sec));
 
+  int t_insert = ribbon->add_tab(horizon::i18n().tr("pluma-writer.tabs.insert"));
+  auto insert_sec = std::make_unique<InsertSection>(ribbon.get(), t_insert);
+  m_insert_sections.push_back(std::move(insert_sec));
+
   int t3 = ribbon->add_tab(horizon::i18n().tr("pluma-writer.tabs.image_format"));
   auto image_sec = std::make_unique<ImageFormatSection>(ribbon.get(), t3);
   m_image_format_sections.push_back(std::move(image_sec));
@@ -425,10 +429,6 @@ void PlumaWindow::create_tab(const std::string &title,
   auto table_sec = std::make_unique<TableLayoutSection>(ribbon.get(), t4);
   m_table_layout_sections.push_back(std::move(table_sec));
   ribbon->set_tab_visible(t4, false);
-
-  int t_insert = ribbon->add_tab(horizon::i18n().tr("pluma-writer.tabs.insert"));
-  auto insert_sec = std::make_unique<InsertSection>(ribbon.get(), t_insert);
-  m_insert_sections.push_back(std::move(insert_sec));
 
   tab_container->add_child(std::move(ribbon));
 
