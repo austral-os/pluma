@@ -142,6 +142,8 @@
             "style": "Style:",
             "color": "Color:",
             "thickness": "Thickness:",
+            "background": "Background",
+            "bg_color": "Background Color:",
             "preset_none": "No borders",
             "preset_outer": "Outer border only",
             "preset_outer_horiz": "Outer border and horizontal lines",

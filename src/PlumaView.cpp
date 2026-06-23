@@ -768,6 +768,50 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
             if (application()) {
                 application()->add_timer(50, [this]() {
                     auto dlg = std::make_unique<pluma_app::dialogs::TableDialog>();
+
+                    if (m_editor) {
+                        auto sel = m_editor->getSelectionRange();
+                        uint32_t anchor = sel.anchor;
+                        pluma::PropertyBag style = m_editor->getFormatRegistry().getStyleAt(anchor);
+                        pluma::PropertyBag prev_style = anchor > 0 ? m_editor->getFormatRegistry().getStyleAt(anchor - 1) : pluma::PropertyBag();
+                        
+                        auto get_prop = [&](pluma::PropertyId id) -> std::optional<pluma::PropertyValue> {
+                            if (auto v = style.get(id)) return v;
+                            return prev_style.get(id);
+                        };
+                        
+                        bool borders[6] = {false};
+                        if (auto v = get_prop(pluma::PropertyId::BorderTopVisible)) borders[0] = std::get<bool>(*v);
+                        if (auto v = get_prop(pluma::PropertyId::BorderBottomVisible)) borders[1] = std::get<bool>(*v);
+                        if (auto v = get_prop(pluma::PropertyId::BorderLeftVisible)) borders[2] = std::get<bool>(*v);
+                        if (auto v = get_prop(pluma::PropertyId::BorderRightVisible)) borders[3] = std::get<bool>(*v);
+
+                        int line_style = 0;
+                        if (auto v = get_prop(pluma::PropertyId::BorderTopStyle)) line_style = std::get<int>(*v);
+
+                        float line_thickness = 1.0f;
+                        if (auto v = get_prop(pluma::PropertyId::BorderTopWidth)) line_thickness = std::get<float>(*v);
+
+                        uint32_t line_color_u = 0xFF000000;
+                        if (auto v = get_prop(pluma::PropertyId::BorderTopColor)) line_color_u = std::get<uint32_t>(*v);
+
+                        auto p2_to_h = [](uint32_t c) -> horizon::Color {
+                            float a = ((c >> 24) & 0xFF) / 255.0f;
+                            float r = ((c >> 16) & 0xFF) / 255.0f;
+                            float g = ((c >> 8) & 0xFF) / 255.0f;
+                            float b = (c & 0xFF) / 255.0f;
+                            return horizon::Color(r, g, b, a);
+                        };
+
+                        horizon::Color line_color = p2_to_h(line_color_u);
+
+                        uint32_t bg_color_u = 0x00FFFFFF; // Transparent white by default
+                        if (auto v = get_prop(pluma::PropertyId::BackgroundColor)) bg_color_u = std::get<uint32_t>(*v);
+                        horizon::Color bg_color = p2_to_h(bg_color_u);
+
+                        dlg->set_initial_state(borders, line_color, line_thickness, line_style, bg_color);
+                    }
+
                     dlg->when_accepted.connect([this](pluma_app::dialogs::TableBordersEvent& ev) {
                         if (!m_editor) return;
                         auto sel = m_editor->getSelectionRange();
@@ -821,6 +865,9 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                         } else {
                             m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderRightVisible, false);
                         }
+                        
+                        uint32_t bg_color = h_to_p2(ev.bg_color);
+                        m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BackgroundColor, bg_color);
                         
                         invalidate();
                     });

@@ -142,6 +142,8 @@
             "style": "Estilo:",
             "color": "Color:",
             "thickness": "Grosor:",
+            "background": "Fondo",
+            "bg_color": "Color de fondo:",
             "preset_none": "Sin bordes",
             "preset_outer": "Solo borde exterior",
             "preset_outer_horiz": "Borde exterior y líneas horizontales",

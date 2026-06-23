@@ -212,6 +212,28 @@ TableDialog::TableDialog()
       horizon::i18n().tr("pluma-writer.table_dialog.borders"),
       std::move(borders_tab)));
 
+  // ----------------------------------------------------
+  // Tab: Background
+  // ----------------------------------------------------
+  auto background_tab = std::make_unique<horizon::Widget>();
+  background_tab->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+  background_tab->set_position_type(horizon::FILL);
+  background_tab->set_margin(20);
+  background_tab->set_spacing(10);
+
+  auto bg_color_selector = std::make_unique<horizon::ColorSelector>();
+  bg_color_selector->set_color(horizon::Color(1.0f, 1.0f, 1.0f, 1.0f)); // Default white
+  m_bg_color_selector = bg_color_selector.get();
+  
+  auto bg_color_row = create_input_row(
+      horizon::i18n().tr("pluma-writer.table_dialog.bg_color"),
+      std::move(bg_color_selector));
+  background_tab->add_child(std::move(bg_color_row));
+
+  m_notebook->add_tab(horizon::NotebookPage(
+      horizon::i18n().tr("pluma-writer.table_dialog.background"),
+      std::move(background_tab)));
+
   main_container->add_child(std::move(notebook));
 
   // Action buttons (Ok / Cancel)
@@ -251,6 +273,9 @@ TableDialog::TableDialog()
         else if (idx == 7) thick = 5.0f;
         ev.line_thickness = thick;
     }
+
+    ev.bg_color = m_bg_color_selector->color();
+
     when_accepted.run(ev);
     on_close();
   });
@@ -299,6 +324,31 @@ void TableDialog::populate_combos() {
 }
 
 void TableDialog::on_close() { this->quit(); }
+
+void TableDialog::set_initial_state(const bool borders[6], horizon::Color line_color, float line_thickness, int line_style, horizon::Color bg_color) {
+    if (m_preview) {
+        for (int i = 0; i < 6; ++i) m_preview->m_active_borders[i] = borders[i];
+        m_preview->set_line_color(line_color);
+        m_preview->set_line_thickness(line_thickness);
+        m_preview->set_line_style(line_style);
+        m_preview->invalidate();
+    }
+    m_style_combo->set_selected_item_index(line_style);
+    m_color_selector->set_color(line_color);
+    
+    int thick_idx = 1;
+    if (line_thickness <= 0.5f) thick_idx = 0;
+    else if (line_thickness <= 1.0f) thick_idx = 1;
+    else if (line_thickness <= 1.5f) thick_idx = 2;
+    else if (line_thickness <= 2.0f) thick_idx = 3;
+    else if (line_thickness <= 2.5f) thick_idx = 4;
+    else if (line_thickness <= 3.0f) thick_idx = 5;
+    else if (line_thickness <= 4.0f) thick_idx = 6;
+    else thick_idx = 7;
+    m_thickness_combo->set_selected_item_index(thick_idx);
+
+    m_bg_color_selector->set_color(bg_color);
+}
 
 } // namespace dialogs
 } // namespace pluma_app

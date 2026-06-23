@@ -5,6 +5,7 @@
 #include <horizon/Notebook.hpp>
 #include <horizon/Combo.hpp>
 #include <horizon/ColorSelector.hpp>
+#include <horizon/Checkbox.hpp>
 #include <string>
 
 namespace pluma_app {
@@ -20,6 +21,8 @@ struct TableBordersEvent : public horizon::EventContext {
     int style_index = 0;
     horizon::Color line_color;
     float line_thickness = 1.0f;
+    
+    horizon::Color bg_color;
 };
 
 class TableDialog : public horizon::WaylandWindow {
@@ -27,6 +30,8 @@ public:
     TableDialog();
 
     horizon::EventsManager<TableBordersEvent> when_accepted;
+    
+    void set_initial_state(const bool borders[6], horizon::Color line_color, float line_thickness, int line_style, horizon::Color bg_color);
 
 private:
     horizon::Notebook* m_notebook;
@@ -39,6 +44,8 @@ private:
     horizon::Combo* m_style_combo;
     horizon::ColorSelector* m_color_selector;
     horizon::Combo* m_thickness_combo;
+    
+    horizon::ColorSelector* m_bg_color_selector;
     
     void on_close();
     void populate_combos();
