@@ -9,6 +9,7 @@
 #include <horizon/Spacer.hpp>
 #include <horizon/Widget.hpp>
 #include <horizon/Window.hpp>
+#include <horizon/ThemeManager.hpp>
 #include <horizon/dialogs/FileDialog.hpp>
 
 // Forward declaration of TableBordersPreview since it will be in its own file
@@ -126,8 +127,11 @@ TableDialog::TableDialog()
                        std::move(cb_style)));
 
   auto cs_color = std::make_unique<horizon::ColorSelector>();
-  cs_color->set_color(
-      horizon::Color(0.0f, 0.0f, 0.0f, 1.0f)); // Default text color (black)
+  horizon::Color default_color(0.0f, 0.0f, 0.0f, 1.0f);
+  if (auto tm = horizon::theme_manager()) {
+      default_color = tm->get_color("textbox_fg");
+  }
+  cs_color->set_color(default_color);
   m_color_selector = cs_color.get();
   left_pane->add_child(
       create_input_row(horizon::i18n().tr("pluma-writer.table_dialog.color"),
@@ -156,6 +160,30 @@ TableDialog::TableDialog()
   m_preview = preview.get();
   right_pane->add_child(std::move(preview));
   right_pane->add_child(horizon::Spacer(100));
+
+  m_style_combo->when_item_selected.connect([this](horizon::ComboItemSelectedContext &) {
+    if (m_preview) m_preview->set_line_style(m_style_combo->selected_item_index());
+  });
+
+  m_color_selector->when_color_changed.connect([this](horizon::ColorPickerDialogAcceptedContext &) {
+    if (m_preview) m_preview->set_line_color(m_color_selector->color());
+  });
+
+  m_thickness_combo->when_item_selected.connect([this](horizon::ComboItemSelectedContext &) {
+    if (m_preview) {
+        float thick = 1.0f;
+        int idx = m_thickness_combo->selected_item_index();
+        if (idx == 0) thick = 0.5f;
+        else if (idx == 1) thick = 1.0f;
+        else if (idx == 2) thick = 1.5f;
+        else if (idx == 3) thick = 2.0f;
+        else if (idx == 4) thick = 2.5f;
+        else if (idx == 5) thick = 3.0f;
+        else if (idx == 6) thick = 4.0f;
+        else if (idx == 7) thick = 5.0f;
+        m_preview->set_line_thickness(thick);
+    }
+  });
 
   borders_tab->add_child(std::move(left_pane));
   borders_tab->add_child(std::move(right_pane));

@@ -1,5 +1,7 @@
 #include "pluma/Widgets/TableBordersPreview.hpp"
 #include <horizon/GraphicsContext.hpp>
+#include <horizon/ThemeManager.hpp>
+#include <cairo/cairo.h>
 #include <cmath>
 
 namespace pluma_app {
@@ -7,8 +9,11 @@ namespace Widgets {
 
 TableBordersPreview::TableBordersPreview() : horizon::Widget() {
     set_size(150, 150);
-    // Default to all borders active
     for (int i = 0; i < 6; ++i) m_active_borders[i] = true;
+    
+    if (auto tm = horizon::theme_manager()) {
+        m_line_color = tm->get_color("textbox_fg");
+    }
 
     when_mouse_press.connect([this](horizon::MouseButtonEventContext& ctx) {
         if (ctx.button != 1) return;
@@ -83,38 +88,130 @@ void TableBordersPreview::set_preset(int preset_index) {
     invalidate();
 }
 
+void TableBordersPreview::set_line_style(int style_index) {
+    if (m_style_index != style_index) {
+        m_style_index = style_index;
+        invalidate();
+    }
+}
+
+void TableBordersPreview::set_line_color(horizon::Color color) {
+    m_line_color = color;
+    invalidate();
+}
+
+void TableBordersPreview::set_line_thickness(float thickness) {
+    if (m_line_thickness != thickness) {
+        m_line_thickness = thickness;
+        invalidate();
+    }
+}
+
 void TableBordersPreview::draw(horizon::GraphicsContext& ctx) {
     auto w = width();
     auto h = height();
     auto dx = x();
     auto dy = y();
 
-    // Draw background
-    ctx.setColor(0.9f, 0.9f, 0.9f);
+    horizon::Color page_bg(1.0f, 1.0f, 1.0f, 1.0f);
+    horizon::Color widget_bg(0.9f, 0.9f, 0.9f, 1.0f);
+    horizon::Color cell_bg(0.8f, 0.8f, 0.8f, 1.0f);
+    horizon::Color line_active(0.0f, 0.0f, 0.0f, 1.0f);
+    horizon::Color line_inactive(0.85f, 0.85f, 0.85f, 1.0f);
+
+    if (auto tm = horizon::theme_manager()) {
+        page_bg = tm->get_color("textbox_bg");
+        widget_bg = tm->get_color("window_bg");
+        
+        // Cells should be slightly distinguishable from the page
+        cell_bg = page_bg.darker(5.0f); 
+        
+        line_inactive = page_bg.darker(15.0f);
+    }
+
+    // Draw widget background
+    ctx.setColor(widget_bg.r, widget_bg.g, widget_bg.b);
     ctx.fillRect(dx, dy, w, h);
     
-    // Draw outer frame shadow
-    ctx.setColor(1.0f, 1.0f, 1.0f);
+    // Draw table background (same as document page)
+    ctx.setColor(page_bg.r, page_bg.g, page_bg.b);
     ctx.fillRect(dx + 10, dy + 10, w - 20, h - 20);
 
     float cell_margin = 15;
     float cell_w = (w - 20 - 3 * cell_margin) / 2.0f;
     float cell_h = (h - 20 - 3 * cell_margin) / 2.0f;
 
-    ctx.setColor(0.8f, 0.8f, 0.8f);
+    ctx.setColor(cell_bg.r, cell_bg.g, cell_bg.b);
     // Draw 4 cell backgrounds
     ctx.fillRect(dx + 10 + cell_margin, dy + 10 + cell_margin, cell_w, cell_h);
     ctx.fillRect(dx + 10 + cell_w + 2 * cell_margin, dy + 10 + cell_margin, cell_w, cell_h);
     ctx.fillRect(dx + 10 + cell_margin, dy + 10 + cell_h + 2 * cell_margin, cell_w, cell_h);
     ctx.fillRect(dx + 10 + cell_w + 2 * cell_margin, dy + 10 + cell_h + 2 * cell_margin, cell_w, cell_h);
 
+    auto* cr = static_cast<cairo_t*>(ctx.getNativeContext());
+
     auto draw_line = [&](float x1, float y1, float x2, float y2, bool active) {
-        if (active) {
-            ctx.setColor(0.0f, 0.0f, 0.0f); // Black for active
-        } else {
-            ctx.setColor(0.85f, 0.85f, 0.85f); // Light grey for inactive
+        if (!cr) {
+            // Fallback
+            if (active) {
+                ctx.setColor(m_line_color.r, m_line_color.g, m_line_color.b);
+            } else {
+                ctx.setColor(line_inactive.r, line_inactive.g, line_inactive.b);
+            }
+            ctx.drawLine(dx + x1, dy + y1, dx + x2, dy + y2, m_line_thickness);
+            return;
         }
-        ctx.drawLine(dx + x1, dy + y1, dx + x2, dy + y2, 2.0f);
+
+        cairo_save(cr);
+        
+        if (active) {
+            cairo_set_source_rgba(cr, m_line_color.r, m_line_color.g, m_line_color.b, m_line_color.a);
+            cairo_set_line_width(cr, m_line_thickness);
+
+            // style_index mapping: 
+            // 0=solid, 1=dashed, 2=dotted, 3=dash_dot, 4=dash_dot_dot, 5=double
+            if (m_style_index == 1) { // dashed
+                const double dashes[] = {6.0, 3.0};
+                cairo_set_dash(cr, dashes, 2, 0);
+            } else if (m_style_index == 2) { // dotted
+                const double dashes[] = {2.0, 3.0};
+                cairo_set_dash(cr, dashes, 2, 0);
+            } else if (m_style_index == 3) { // dash_dot
+                const double dashes[] = {6.0, 3.0, 2.0, 3.0};
+                cairo_set_dash(cr, dashes, 4, 0);
+            } else if (m_style_index == 4) { // dash_dot_dot
+                const double dashes[] = {6.0, 3.0, 2.0, 3.0, 2.0, 3.0};
+                cairo_set_dash(cr, dashes, 6, 0);
+            }
+        } else {
+            cairo_set_source_rgba(cr, line_inactive.r, line_inactive.g, line_inactive.b, line_inactive.a);
+            cairo_set_line_width(cr, 1.0);
+            cairo_set_dash(cr, nullptr, 0, 0); // Solid
+        }
+
+        auto draw_path = [&]() {
+            cairo_move_to(cr, dx + x1, dy + y1);
+            cairo_line_to(cr, dx + x2, dy + y2);
+            cairo_stroke(cr);
+        };
+
+        if (active && m_style_index == 5) { // double
+            float d_x = 0, d_y = 0;
+            if (std::abs(x1 - x2) < 0.1f) d_x = 1.5f + m_line_thickness / 2.0f; // vertical
+            else d_y = 1.5f + m_line_thickness / 2.0f; // horizontal
+            
+            cairo_move_to(cr, dx + x1 - d_x, dy + y1 - d_y);
+            cairo_line_to(cr, dx + x2 - d_x, dy + y2 - d_y);
+            cairo_stroke(cr);
+            
+            cairo_move_to(cr, dx + x1 + d_x, dy + y1 + d_y);
+            cairo_line_to(cr, dx + x2 + d_x, dy + y2 + d_y);
+            cairo_stroke(cr);
+        } else {
+            draw_path();
+        }
+
+        cairo_restore(cr);
     };
 
     // Top
