@@ -217,6 +217,9 @@ ParagraphDialog::ParagraphDialog()
     std::string ls_id = m_line_spacing_combo->selected_item()->id;
     if (ls_id == "Single" || ls_id == "1.5 lines" || ls_id == "Double") {
       m_line_spacing_value_box->set_text(""); // Clear value
+      m_line_spacing_value_box->set_enabled(false);
+    } else {
+      m_line_spacing_value_box->set_enabled(true);
     }
     update_preview();
   });
@@ -294,13 +297,17 @@ void ParagraphDialog::set_initial_paragraph(
 
   if (line_spacing == 1.0f) {
     m_line_spacing_combo->set_selected_item_by_id("Single");
+    m_line_spacing_value_box->set_enabled(false);
   } else if (line_spacing == 1.5f) {
     m_line_spacing_combo->set_selected_item_by_id("1.5 lines");
+    m_line_spacing_value_box->set_enabled(false);
   } else if (line_spacing == 2.0f) {
     m_line_spacing_combo->set_selected_item_by_id("Double");
+    m_line_spacing_value_box->set_enabled(false);
   } else {
     m_line_spacing_combo->set_selected_item_by_id("Proportional");
     m_line_spacing_value_box->set_text(std::to_string(line_spacing));
+    m_line_spacing_value_box->set_enabled(true);
   }
 
   update_preview();
