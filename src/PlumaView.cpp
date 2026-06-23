@@ -769,7 +769,60 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                 application()->add_timer(50, [this]() {
                     auto dlg = std::make_unique<pluma_app::dialogs::TableDialog>();
                     dlg->when_accepted.connect([this](pluma_app::dialogs::TableBordersEvent& ev) {
-                        // TODO: Apply borders to table
+                        if (!m_editor) return;
+                        auto sel = m_editor->getSelectionRange();
+                        
+                        auto h_to_p2 = [](const horizon::Color &c) -> uint32_t {
+                            uint32_t a = static_cast<uint32_t>(c.a * 255.0f) & 0xFF;
+                            uint32_t r = static_cast<uint32_t>(c.r * 255.0f) & 0xFF;
+                            uint32_t g = static_cast<uint32_t>(c.g * 255.0f) & 0xFF;
+                            uint32_t b = static_cast<uint32_t>(c.b * 255.0f) & 0xFF;
+                            return (a << 24) | (r << 16) | (g << 8) | b;
+                        };
+                        auto p_color = h_to_p2(ev.line_color);
+                        float width = ev.line_thickness;
+
+                        // Top
+                        if (ev.active_borders[0]) {
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderTopVisible, true);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderTopWidth, width);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderTopColor, p_color);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderTopStyle, ev.style_index);
+                        } else {
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderTopVisible, false);
+                        }
+                        
+                        // Bottom
+                        if (ev.active_borders[1]) {
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderBottomVisible, true);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderBottomWidth, width);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderBottomColor, p_color);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderBottomStyle, ev.style_index);
+                        } else {
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderBottomVisible, false);
+                        }
+                        
+                        // Left
+                        if (ev.active_borders[2]) {
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderLeftVisible, true);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderLeftWidth, width);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderLeftColor, p_color);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderLeftStyle, ev.style_index);
+                        } else {
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderLeftVisible, false);
+                        }
+                        
+                        // Right
+                        if (ev.active_borders[3]) {
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderRightVisible, true);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderRightWidth, width);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderRightColor, p_color);
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderRightStyle, ev.style_index);
+                        } else {
+                            m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BorderRightVisible, false);
+                        }
+                        
+                        invalidate();
                     });
                     dlg->run();
                 }, false);

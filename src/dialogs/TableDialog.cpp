@@ -234,6 +234,23 @@ TableDialog::TableDialog()
   btn_ok->when_click.connect([this](horizon::EventContext &) {
     TableBordersEvent ev;
     ev.sender = this;
+    if (m_preview) {
+        for(int i=0; i<6; ++i) ev.active_borders[i] = m_preview->m_active_borders[i];
+        ev.style_index = m_style_combo->selected_item_index();
+        ev.line_color = m_color_selector->color();
+        
+        float thick = 1.0f;
+        int idx = m_thickness_combo->selected_item_index();
+        if (idx == 0) thick = 0.5f;
+        else if (idx == 1) thick = 1.0f;
+        else if (idx == 2) thick = 1.5f;
+        else if (idx == 3) thick = 2.0f;
+        else if (idx == 4) thick = 2.5f;
+        else if (idx == 5) thick = 3.0f;
+        else if (idx == 6) thick = 4.0f;
+        else if (idx == 7) thick = 5.0f;
+        ev.line_thickness = thick;
+    }
     when_accepted.run(ev);
     on_close();
   });

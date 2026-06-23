@@ -16,6 +16,10 @@ namespace dialogs {
 
 struct TableBordersEvent : public horizon::EventContext {
     void* sender = nullptr;
+    bool active_borders[6] = {false};
+    int style_index = 0;
+    horizon::Color line_color;
+    float line_thickness = 1.0f;
 };
 
 class TableDialog : public horizon::WaylandWindow {
