@@ -379,6 +379,10 @@ void PlumaView::set_application_recursive(horizon::WaylandWindow *app) {
     if (!app && application() && m_blink_timer_id != 0) {
         application()->stop_timer(m_blink_timer_id);
         m_blink_timer_id = 0;
+        if (m_popup_conn_id != 0) {
+            application()->when_popup_dismissed.disconnect(m_popup_conn_id);
+            m_popup_conn_id = 0;
+        }
     }
     
     horizon::Widget::set_application_recursive(app);
@@ -390,8 +394,12 @@ void PlumaView::set_application_recursive(horizon::WaylandWindow *app) {
             }
         }, true);
         
-        app->when_popup_dismissed.connect([this](horizon::PopupDismissedContext &) {
-            m_active_context_menu.reset();
+        m_popup_conn_id = app->when_popup_dismissed.connect([this](horizon::PopupDismissedContext &) {
+            if (application()) {
+                application()->post_task([this]() {
+                    m_active_context_menu.reset();
+                });
+            }
         });
     }
 }
