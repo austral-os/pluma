@@ -516,6 +516,12 @@ bool PlumaView::load_document(const std::string &path) {
   pluma::plugins::PlumaArchiveImporter importer;
   bool success = importer.importFile(path, *m_editor);
   if (success) {
+    if (m_spell_service) {
+        for (const auto& w : m_editor->getIgnoredWords()) {
+            m_spell_service->ignoreWord(w);
+        }
+        triggerAnalysis();
+    }
     calculate_layout();
     invalidate();
   }
@@ -785,6 +791,7 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
 
             auto ignore_item = std::make_unique<horizon::MenuItem>("Omitir");
             ignore_item->when_click.connect([this, word](auto&) {
+                m_editor->addIgnoredWord(word);
                 m_spell_service->ignoreWord(word);
                 triggerAnalysis();
                 invalidate();
