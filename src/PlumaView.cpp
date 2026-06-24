@@ -442,6 +442,9 @@ void PlumaView::draw(horizon::GraphicsContext &ctx) {
   cairo_fill(cr);
 
   pluma::CairoRenderer renderer(cr);
+  // Durante drag, usar calidad de render r\u00e1pida (CAIRO_FILTER_FAST)
+  // para mantener la fluidez. Al soltar, se renderiza en calidad completa.
+  renderer.setDraftQuality(m_editor->isDragging());
   m_editor->render(renderer);
 
   cairo_restore(cr);
