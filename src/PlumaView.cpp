@@ -782,6 +782,16 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
             if (!suggestions.empty()) {
                 menu->add_separator();
             }
+
+            auto ignore_item = std::make_unique<horizon::MenuItem>("Omitir");
+            ignore_item->when_click.connect([this, word](auto&) {
+                m_spell_service->ignoreWord(word);
+                triggerAnalysis();
+                invalidate();
+                if (parent()) parent()->invalidate();
+            });
+            menu->add_item(std::move(ignore_item));
+            menu->add_separator();
         }
     }
 
