@@ -709,10 +709,46 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
 
     if (is_spell_error && m_spell_service) {
         std::string text = m_editor->getSnapshot()->getText();
+        
+        auto is_word_char = [](const std::string& str, size_t i) -> bool {
+            unsigned char c = str[i];
+            if (std::isalpha(c)) return true;
+            if (c == 0xC3 && i + 1 < str.length()) {
+                unsigned char c2 = str[i+1];
+                if (c2 == 0x97 || c2 == 0xB7) return false;
+                return true;
+            }
+            return false;
+        };
+
+        auto get_char_len = [](unsigned char c) -> size_t {
+            if ((c & 0x80) == 0) return 1;
+            if ((c & 0xE0) == 0xC0) return 2;
+            if ((c & 0xF0) == 0xE0) return 3;
+            if ((c & 0xF8) == 0xF0) return 4;
+            return 1;
+        };
+
         int start = head;
-        while (start > 0 && std::isalpha(static_cast<unsigned char>(text[start - 1]))) start--;
+        while (start > 0) {
+            int prev = start - 1;
+            // Retroceder al inicio del carácter UTF-8
+            while (prev > 0 && (static_cast<unsigned char>(text[prev]) & 0xC0) == 0x80) prev--;
+            if (is_word_char(text, prev)) {
+                start = prev;
+            } else {
+                break;
+            }
+        }
+        
         int end = head;
-        while (end < text.length() && std::isalpha(static_cast<unsigned char>(text[end]))) end++;
+        while (end < text.length()) {
+            if (is_word_char(text, end)) {
+                end += get_char_len(text[end]);
+            } else {
+                break;
+            }
+        }
         
         if (start < end) {
             std::string word = text.substr(start, end - start);
