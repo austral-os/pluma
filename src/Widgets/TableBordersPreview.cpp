@@ -119,14 +119,22 @@ void TableBordersPreview::draw(horizon::GraphicsContext& ctx) {
     horizon::Color line_active(0.0f, 0.0f, 0.0f, 1.0f);
     horizon::Color line_inactive(0.85f, 0.85f, 0.85f, 1.0f);
 
+    horizon::Color text_color(0.0f, 0.0f, 0.0f, 1.0f);
+
     if (auto tm = horizon::theme_manager()) {
         page_bg = tm->get_color("textbox_bg");
         widget_bg = tm->get_color("window_bg");
+        text_color = tm->get_color("textbox_fg");
         
         // Cells should be slightly distinguishable from the page
         cell_bg = page_bg.darker(5.0f); 
         
         line_inactive = page_bg.darker(15.0f);
+    }
+
+    horizon::Color effective_line_color = m_line_color;
+    if (effective_line_color.r == 0.0f && effective_line_color.g == 0.0f && effective_line_color.b == 0.0f && effective_line_color.a == 1.0f) {
+        effective_line_color = text_color;
     }
 
     // Draw widget background
@@ -154,7 +162,7 @@ void TableBordersPreview::draw(horizon::GraphicsContext& ctx) {
         if (!cr) {
             // Fallback
             if (active) {
-                ctx.setColor(m_line_color.r, m_line_color.g, m_line_color.b);
+                ctx.setColor(effective_line_color.r, effective_line_color.g, effective_line_color.b);
             } else {
                 ctx.setColor(line_inactive.r, line_inactive.g, line_inactive.b);
             }
@@ -165,7 +173,7 @@ void TableBordersPreview::draw(horizon::GraphicsContext& ctx) {
         cairo_save(cr);
         
         if (active) {
-            cairo_set_source_rgba(cr, m_line_color.r, m_line_color.g, m_line_color.b, m_line_color.a);
+            cairo_set_source_rgba(cr, effective_line_color.r, effective_line_color.g, effective_line_color.b, effective_line_color.a);
             cairo_set_line_width(cr, m_line_thickness);
 
             // style_index mapping: 
