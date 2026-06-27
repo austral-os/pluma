@@ -897,6 +897,9 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                         if (!m_editor) return;
                         auto sel = m_editor->getSelectionRange();
                         
+                        m_editor->beginUndoTransaction();
+                        m_editor->suspendLayout();
+                        
                         auto h_to_p2 = [](const horizon::Color &c) -> uint32_t {
                             uint32_t a = static_cast<uint32_t>(c.a * 255.0f) & 0xFF;
                             uint32_t r = static_cast<uint32_t>(c.r * 255.0f) & 0xFF;
@@ -951,6 +954,9 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                         m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BackgroundColor, bg_color);
                         
                         m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::CellVerticalAlignment, static_cast<pluma::CellVerticalAlign>(ev.cell_vertical_alignment));
+                        
+                        m_editor->resumeLayout();
+                        m_editor->commitUndoTransaction();
                         
                         invalidate();
                     });
