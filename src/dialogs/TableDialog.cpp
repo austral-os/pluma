@@ -378,6 +378,27 @@ void TableDialog::set_initial_state(const bool borders[6], horizon::Color line_c
     if (cell_vertical_alignment >= 0 && cell_vertical_alignment <= 2) {
         m_valign_combo->set_selected_item_index(cell_vertical_alignment);
     }
+
+    int preset_idx = -1;
+    bool all_true = true, all_false = true, outer_true = true;
+    for (int i = 0; i < 6; ++i) {
+        if (!borders[i]) all_true = false;
+        if (borders[i]) all_false = false;
+        if (i < 4 && !borders[i]) outer_true = false;
+    }
+    
+    if (all_false) preset_idx = 0;
+    else if (all_true) preset_idx = 3;
+    else if (outer_true && !borders[4] && !borders[5]) preset_idx = 1;
+    else if (outer_true && borders[4] && !borders[5]) preset_idx = 2;
+    else if (outer_true) preset_idx = 4;
+    
+    if (preset_idx != -1 && m_presets_group) {
+        for (int i = 0; i < 5; ++i) {
+            static_cast<MultiToggleGroupButton *>(m_presets_group)
+                ->set_item_active(i, i == preset_idx);
+        }
+    }
 }
 
 } // namespace dialogs

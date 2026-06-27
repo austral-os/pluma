@@ -856,7 +856,7 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                             return style.get(id);
                         };
                         
-                        bool borders[6] = {false};
+                        bool borders[6] = {true, true, true, true, true, true};
                         if (auto v = get_prop(pluma::PropertyId::BorderTopVisible)) borders[0] = std::get<bool>(*v);
                         if (auto v = get_prop(pluma::PropertyId::BorderBottomVisible)) borders[1] = std::get<bool>(*v);
                         if (auto v = get_prop(pluma::PropertyId::BorderLeftVisible)) borders[2] = std::get<bool>(*v);
