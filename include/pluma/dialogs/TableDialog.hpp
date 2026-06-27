@@ -21,8 +21,9 @@ struct TableBordersEvent : public horizon::EventContext {
     int style_index = 0;
     horizon::Color line_color;
     float line_thickness = 1.0f;
-    
     horizon::Color bg_color;
+    
+    int cell_vertical_alignment = 0;
 };
 
 class TableDialog : public horizon::WaylandWindow {
@@ -31,7 +32,7 @@ public:
 
     horizon::EventsManager<TableBordersEvent> when_accepted;
     
-    void set_initial_state(const bool borders[6], horizon::Color line_color, float line_thickness, int line_style, horizon::Color bg_color);
+    void set_initial_state(const bool borders[6], horizon::Color line_color, float line_thickness, int line_style, horizon::Color bg_color, int cell_vertical_alignment);
 
 private:
     horizon::Notebook* m_notebook;
@@ -46,6 +47,7 @@ private:
     horizon::Combo* m_thickness_combo;
     
     horizon::ColorSelector* m_bg_color_selector;
+    horizon::Combo* m_valign_combo;
     
     void on_close();
     void populate_combos();

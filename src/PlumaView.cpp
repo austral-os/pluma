@@ -836,12 +836,24 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                     if (m_editor) {
                         auto sel = m_editor->getSelectionRange();
                         uint32_t anchor = sel.anchor;
-                        pluma::PropertyBag style = m_editor->getFormatRegistry().getStyleAt(anchor);
-                        pluma::PropertyBag prev_style = anchor > 0 ? m_editor->getFormatRegistry().getStyleAt(anchor - 1) : pluma::PropertyBag();
+                        
+                        uint32_t cell_offset = anchor;
+                        if (auto snapshot = m_editor->getSnapshot()) {
+                            std::string text = snapshot->getText();
+                            while (cell_offset > 0) {
+                                if (text.compare(cell_offset, 5, "|CEL|") == 0 || 
+                                    text.compare(cell_offset, 5, "|ROW|") == 0 || 
+                                    text.compare(cell_offset, 5, "|TBL:") == 0) {
+                                    break;
+                                }
+                                cell_offset--;
+                            }
+                        }
+
+                        pluma::PropertyBag style = m_editor->getFormatRegistry().getStyleAt(cell_offset);
                         
                         auto get_prop = [&](pluma::PropertyId id) -> std::optional<pluma::PropertyValue> {
-                            if (auto v = style.get(id)) return v;
-                            return prev_style.get(id);
+                            return style.get(id);
                         };
                         
                         bool borders[6] = {false};
@@ -873,7 +885,12 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                         if (auto v = get_prop(pluma::PropertyId::BackgroundColor)) bg_color_u = std::get<uint32_t>(*v);
                         horizon::Color bg_color = p2_to_h(bg_color_u);
 
-                        dlg->set_initial_state(borders, line_color, line_thickness, line_style, bg_color);
+                        int cell_valign = 0;
+                        if (auto v = get_prop(pluma::PropertyId::CellVerticalAlignment)) {
+                            cell_valign = static_cast<int>(std::get<pluma::CellVerticalAlign>(*v));
+                        }
+
+                        dlg->set_initial_state(borders, line_color, line_thickness, line_style, bg_color, cell_valign);
                     }
 
                     dlg->when_accepted.connect([this](pluma_app::dialogs::TableBordersEvent& ev) {
@@ -932,6 +949,8 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                         
                         uint32_t bg_color = h_to_p2(ev.bg_color);
                         m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BackgroundColor, bg_color);
+                        
+                        m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::CellVerticalAlignment, static_cast<pluma::CellVerticalAlign>(ev.cell_vertical_alignment));
                         
                         invalidate();
                     });

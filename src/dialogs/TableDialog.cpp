@@ -234,6 +234,25 @@ TableDialog::TableDialog()
       horizon::i18n().tr("pluma-writer.table_dialog.background"),
       std::move(background_tab)));
 
+  // ----------------------------------------------------
+  // Tab: Text
+  // ----------------------------------------------------
+  auto text_tab = std::make_unique<horizon::Widget>();
+  text_tab->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+  text_tab->set_position_type(horizon::FILL);
+  text_tab->set_margin(20);
+  text_tab->set_spacing(10);
+
+  auto cb_valign = std::make_unique<horizon::Combo>();
+  m_valign_combo = cb_valign.get();
+
+  auto valign_row = create_input_row(
+      "Vertical alignment", // Se puede mover a i18n luego
+      std::move(cb_valign));
+  text_tab->add_child(std::move(valign_row));
+
+  m_notebook->add_tab(horizon::NotebookPage("Text", std::move(text_tab)));
+
   main_container->add_child(std::move(notebook));
 
   // Action buttons (Ok / Cancel)
@@ -275,6 +294,7 @@ TableDialog::TableDialog()
     }
 
     ev.bg_color = m_bg_color_selector->color();
+    ev.cell_vertical_alignment = m_valign_combo->selected_item_index();
 
     when_accepted.run(ev);
     on_close();
@@ -321,11 +341,17 @@ void TableDialog::populate_combos() {
   m_thickness_combo->add_item(
       "4pt", horizon::i18n().tr("pluma-writer.table_dialog.thick_40"));
   m_thickness_combo->set_selected_item_index(0);
+
+  // Populate Vertical Alignment
+  m_valign_combo->add_item("top", "Top");
+  m_valign_combo->add_item("middle", "Middle");
+  m_valign_combo->add_item("bottom", "Bottom");
+  m_valign_combo->set_selected_item_index(0);
 }
 
 void TableDialog::on_close() { this->quit(); }
 
-void TableDialog::set_initial_state(const bool borders[6], horizon::Color line_color, float line_thickness, int line_style, horizon::Color bg_color) {
+void TableDialog::set_initial_state(const bool borders[6], horizon::Color line_color, float line_thickness, int line_style, horizon::Color bg_color, int cell_vertical_alignment) {
     if (m_preview) {
         for (int i = 0; i < 6; ++i) m_preview->m_active_borders[i] = borders[i];
         m_preview->set_line_color(line_color);
@@ -348,6 +374,10 @@ void TableDialog::set_initial_state(const bool borders[6], horizon::Color line_c
     m_thickness_combo->set_selected_item_index(thick_idx);
 
     m_bg_color_selector->set_color(bg_color);
+    
+    if (cell_vertical_alignment >= 0 && cell_vertical_alignment <= 2) {
+        m_valign_combo->set_selected_item_index(cell_vertical_alignment);
+    }
 }
 
 } // namespace dialogs
