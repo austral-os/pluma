@@ -293,6 +293,21 @@ PlumaView::PlumaView() : horizon::Widget() {
     }
   });
 
+  when_mouse_move.connect([this](horizon::MouseMoveEventContext &ctx) {
+    if (m_editor) {
+      double local_x = (ctx.x - x()) / m_zoom;
+      double local_y = (ctx.y - y()) / m_zoom;
+      auto cursor = m_editor->getCursorTypeAt(local_x, local_y);
+      if (cursor == pluma::CursorType::Text) {
+          set_cursor_type(horizon::CursorType::Text);
+      } else if (cursor == pluma::CursorType::ColResize) {
+          set_cursor_type(horizon::CursorType::ResizeEW);
+      } else {
+          set_cursor_type(horizon::CursorType::Default);
+      }
+    }
+  });
+
   when_mouse_wheel.connect([this](horizon::MouseWheelEventContext &ctx) {
     if (parent()) {
       parent()->when_mouse_wheel.run(ctx);
