@@ -24,6 +24,7 @@ public:
 
     uint32_t file_capabilities() const override { return horizon::FileAll; }
     std::string current_file_path() const override;
+    std::vector<horizon::FileFilter> file_filters() const override;
 
 private:
     void setup_events();

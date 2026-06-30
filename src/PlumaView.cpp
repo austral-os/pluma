@@ -19,6 +19,7 @@
 #include <string>
 #include <fstream>
 #include <unistd.h>
+#include <pluma/Optimization/ShaperCache.hpp>
 
 namespace pluma_app {
 
@@ -103,7 +104,8 @@ private:
 
 PlumaView::PlumaView() : horizon::Widget() {
   set_position_type(horizon::FREE);
-  auto shaper = std::make_shared<RealCairoShaper>();
+  auto base_shaper = std::make_shared<RealCairoShaper>();
+  auto shaper = std::make_shared<pluma::optimization::ShaperCache>(base_shaper);
   auto font =
       std::make_shared<pluma::DummyFontManager>()->getFont({"Inter", 12.0f});
   m_editor = std::make_shared<pluma::PlumaEditor>(shaper, font);
@@ -153,16 +155,25 @@ PlumaView::PlumaView() : horizon::Widget() {
           "es_ES",
           [this](const std::vector<std::pair<uint32_t, uint32_t>>& errors) {
               if (application()) {
-                  application()->post_task([this, errors]() {
-                      if (m_editor) {
-                          m_editor->suspendLayout();
-                          m_editor->clearDecorationGlobally(pluma::TextDecoration::SpellingError);
-                          for (const auto& err : errors) {
+                  // Capture the generation at analysis time; discard if the
+                  // document changed while the background task was running.
+                  uint64_t captured_gen = m_spell_generation.load(std::memory_order_relaxed);
+                  application()->post_task([this, errors, captured_gen]() {
+                      if (!m_editor) return;
+                      // If the document was modified after the snapshot was
+                      // taken, the offsets are stale — skip applying them.
+                      if (captured_gen != m_spell_generation.load(std::memory_order_relaxed)) return;
+                      uint32_t doc_len = m_editor->getDocumentLength();
+                      m_editor->suspendLayout();
+                      m_editor->clearDecorationGlobally(pluma::TextDecoration::SpellingError);
+                      for (const auto& err : errors) {
+                          // Guard against out-of-bounds offsets from stale analysis.
+                          if (err.first < doc_len && err.first + err.second <= doc_len) {
                               m_editor->applyStyle(err.first, err.second, pluma::PropertyId::Decoration, pluma::TextDecoration::SpellingError);
                           }
-                          m_editor->resumeLayout();
-                          invalidate();
                       }
+                      m_editor->resumeLayout();
+                      invalidate();
                   });
               }
           }
@@ -342,9 +353,7 @@ PlumaView::PlumaView() : horizon::Widget() {
       if (parent())
         parent()->invalidate();
         
-      if (m_service_manager && m_editor) {
-          m_service_manager->runAnalysis(m_editor->getSnapshot(), m_editor->getFormatRegistry());
-        }
+      triggerAnalysis();
     }
   });
 
@@ -702,9 +711,25 @@ horizon::print::PrintDocument PlumaView::generate_print_document(const horizon::
 
 
 void PlumaView::triggerAnalysis() {
-  if (m_service_manager && m_editor) {
-    m_service_manager->runAnalysis(m_editor->getSnapshot(), m_editor->getFormatRegistry());
-  }
+    if (!m_service_manager || !m_editor) return;
+    auto* app = application();
+    if (!app) return;
+
+    // Bump generation so any in-flight callback knows the document changed.
+    m_spell_generation.fetch_add(1, std::memory_order_relaxed);
+
+    // Debounce: cancel a pending spell timer and restart the 400 ms window.
+    if (m_spell_timer_id != 0) {
+        app->stop_timer(m_spell_timer_id);
+        m_spell_timer_id = 0;
+    }
+
+    m_spell_timer_id = app->add_timer(400, [this]() {
+        m_spell_timer_id = 0;
+        if (m_service_manager && m_editor) {
+            m_service_manager->runAnalysis(m_editor->getSnapshot(), m_editor->getFormatRegistry());
+        }
+    });
 }
 
 std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, double local_y) {

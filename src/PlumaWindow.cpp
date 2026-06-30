@@ -746,6 +746,10 @@ void PlumaWindow::create_tab(const std::string &title,
           LOG_INFO << "Image button pressed!";
           if (view_ptr && view_ptr->editor()) {
             m_file_dialog = std::make_unique<horizon::FileDialog>(horizon::FileDialogMode::Open, horizon::i18n().tr("pluma-writer.dialogs.insert_image_title"));
+            m_file_dialog->set_filters({
+                {"Images", {"*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"}, horizon::FileFilterUsage::All},
+                {"All Files", {"*"}, horizon::FileFilterUsage::All}
+            });
             m_file_dialog->when_accepted.connect([this, view_ptr](horizon::FileDialogAcceptedContext& ctx_acc) {
               auto editor = view_ptr->editor();
               std::string img_tag = "\n|IMAGE:InLine:" + ctx_acc.selected_path + "|\n";
@@ -1426,6 +1430,14 @@ PlumaView *PlumaWindow::get_current_view() const {
 std::string PlumaWindow::current_file_path() const {
   auto *view = get_current_view();
   return view ? view->current_path() : "";
+}
+
+std::vector<horizon::FileFilter> PlumaWindow::file_filters() const {
+    return {
+        {"Pluma Document", {"*.pluma"}, horizon::FileFilterUsage::All},
+        {"PDF Document", {"*.pdf"}, horizon::FileFilterUsage::Save},
+        {"All Files", {"*"}, horizon::FileFilterUsage::All}
+    };
 }
 
 void PlumaWindow::setup_events() {

@@ -71,7 +71,9 @@ private:
     std::string m_clipboard_buffer;
     size_t m_blink_timer_id{0};
     size_t m_popup_conn_id{0};
+    size_t m_spell_timer_id{0};
     std::atomic<bool> m_is_printing{false};
+    std::atomic<uint64_t> m_spell_generation{0};
     std::shared_ptr<pluma::ServiceManager> m_service_manager;
     std::shared_ptr<pluma::SpellCheckerService> m_spell_service;
     std::unique_ptr<horizon::Menu> m_active_context_menu;
