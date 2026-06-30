@@ -45,16 +45,34 @@ Ensure you have the following installed to build Pluma from source:
    cd pluma
    ```
 
-2. Generate the build files:
+2. Generate the build files using **Ninja**:
    ```bash
    mkdir build && cd build
-   cmake ..
+   cmake .. -G Ninja
    ```
 
 3. Compile the application:
    ```bash
-   make
+   ninja
    ```
+
+### 📦 Generating a Debian Package
+
+```bash
+# Inside the build/ folder
+ninja package
+
+# Generates:
+# pluma-writer-0.8.0-Linux.deb
+
+# To install:
+sudo dpkg -i pluma-writer-0.8.0-Linux.deb
+```
+
+> **Note:** The `build/` folder is fully regenerable. If you delete it, just run
+> `cmake .. -G Ninja` inside a new `build/` folder and all capabilities
+> (including `ninja package`) will be restored.
+
 
 ## 📄 License
 
