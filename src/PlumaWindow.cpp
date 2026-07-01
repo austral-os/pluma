@@ -907,6 +907,9 @@ void PlumaWindow::create_tab(const std::string &title,
       [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
         if (view_ptr && view_ptr->editor()) {
           auto editor = view_ptr->editor();
+          // Flush deferred layout before reading page geometry — getPageFromY
+          // iterates current_pages_ which may be stale after delayed single-char inserts.
+          editor->syncLayout();
           auto scroll = dynamic_cast<horizon::ScrollArea*>(view_ptr->parent());
           if (scroll) {
             double local_y = scroll->scroll_y();
@@ -923,6 +926,9 @@ void PlumaWindow::create_tab(const std::string &title,
       [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
         if (view_ptr && view_ptr->editor()) {
           auto editor = view_ptr->editor();
+          // Flush deferred layout before reading page geometry — getPageFromY
+          // iterates current_pages_ which may be stale after delayed single-char inserts.
+          editor->syncLayout();
           auto scroll = dynamic_cast<horizon::ScrollArea*>(view_ptr->parent());
           if (scroll) {
             double local_y = scroll->scroll_y();
@@ -1495,6 +1501,11 @@ void PlumaWindow::update_status_bar() {
   auto editor = view->editor();
   std::string text = editor->getText();
   uint32_t offset = editor->getCursorOffset();
+
+  // Flush deferred layout before reading page geometry — getCurrentPageNumber
+  // and getPageCount read current_pages_ which may be stale after deferred
+  // single-character insertions.
+  editor->syncLayout();
 
   uint32_t current_page = editor->getCurrentPageNumber();
   size_t total_pages = editor->getPageCount();

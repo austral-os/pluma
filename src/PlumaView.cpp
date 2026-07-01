@@ -19,7 +19,9 @@
 #include <string>
 #include <fstream>
 #include <unistd.h>
+#include <iostream>
 #include <pluma/Optimization/ShaperCache.hpp>
+#include <pluma/Diagnostics/Profiler.hpp>
 
 namespace pluma_app {
 
@@ -306,6 +308,7 @@ PlumaView::PlumaView() : horizon::Widget() {
 
   when_mouse_move.connect([this](horizon::MouseMoveEventContext &ctx) {
     if (m_editor) {
+      m_editor->syncLayout();
       double local_x = (ctx.x - x()) / m_zoom;
       double local_y = (ctx.y - y()) / m_zoom;
       auto cursor = m_editor->getCursorTypeAt(local_x, local_y);
@@ -328,6 +331,7 @@ PlumaView::PlumaView() : horizon::Widget() {
   when_key_press.connect([this](horizon::KeyEventContext &ctx) {
     if (!m_editor)
       return;
+    PLUMA_PROFILE_SCOPE("PlumaView::keyPress");
 
     bool handled = m_editor->onKeyPress(
         ctx.keysym, static_cast<pluma::ModifierFlags>(ctx.modifiers));
@@ -358,6 +362,22 @@ PlumaView::PlumaView() : horizon::Widget() {
   });
 
   when_key_release.connect([this](horizon::KeyEventContext &ctx) {
+    // F11: clear accumulated profiler data before a focused measurement
+    if (ctx.keysym == 0xffc8) {
+      pluma::diagnostics::Profiler::getInstance().clear();
+      std::cerr << "--- Pluma Profiler Data Cleared ---" << std::endl;
+      ctx.stop_propagation = true;
+      return;
+    }
+
+    // F12: dump accumulated profiler report to stderr
+    if (ctx.keysym == 0xffc9) {
+      std::string report = pluma::diagnostics::Profiler::getInstance().getReport();
+      std::cerr << report << std::endl;
+      ctx.stop_propagation = true;
+      return;
+    }
+
     if (!m_editor)
       return;
     bool handled = m_editor->onKeyRelease(
@@ -473,6 +493,10 @@ void PlumaView::draw(horizon::GraphicsContext &ctx) {
   cairo_rectangle(cr, x1, y1, x2 - x1, y2 - y1);
   cairo_fill(cr);
 
+  // Flush any deferred layout before rendering — guarantees current_pages_
+  // is up to date after coalesced single-character insertions.
+  m_editor->syncLayout();
+
   pluma::CairoRenderer renderer(cr);
   // Durante drag, usar calidad de render r\u00e1pida (CAIRO_FILTER_FAST)
   // para mantener la fluidez. Al soltar, se renderiza en calidad completa.
@@ -485,6 +509,13 @@ void PlumaView::draw(horizon::GraphicsContext &ctx) {
 void PlumaView::calculate_layout() {
   if (m_is_printing) return;
   horizon::Widget::calculate_layout();
+
+  // Flush deferred layout before reading geometry — preferred_width/height
+  // call getDocumentBounds() which reads current_pages_, and that may be stale
+  // after deferred single-character insertions.
+  if (m_editor) {
+    m_editor->syncLayout();
+  }
 
   int target_w = preferred_width();
   int target_h = preferred_height();
@@ -735,6 +766,10 @@ void PlumaView::triggerAnalysis() {
 std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, double local_y) {
     auto menu = std::make_unique<horizon::Menu>();
     if (!m_editor) return menu;
+
+    // Flush deferred layout before reading page geometry — getBlankPageOffsetAtY
+    // iterates current_pages_ which may be stale after delayed single-character inserts.
+    m_editor->syncLayout();
 
     auto blank_page_opt = m_editor->getBlankPageOffsetAtY(pluma::Twips(local_y / m_zoom * 15.0f));
     if (blank_page_opt.has_value()) {
