@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
-project(pluma-writer VERSION 0.8.3 LANGUAGES CXX)
+project(pluma-writer VERSION 0.8.5 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(PkgConfig REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 pkg_check_modules(CAIRO REQUIRED cairo)
 pkg_check_modules(HORIZON REQUIRED IMPORTED_TARGET horizon)
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
@@ -34,6 +35,29 @@ target_link_libraries(pluma-writer PRIVATE
 
 target_compile_definitions(pluma-writer PRIVATE APP_VERSION="${PROJECT_VERSION}")
 
+add_executable(pluma-color-scheme-preferences-test
+    tests/pluma_color_scheme_preferences_test.cpp
+)
+target_include_directories(pluma-color-scheme-preferences-test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+add_custom_target(validate-pluma-color-scheme-preferences ALL
+    COMMAND pluma-color-scheme-preferences-test
+    DEPENDS pluma-color-scheme-preferences-test
+    COMMENT "Validating Pluma color scheme preference behavior"
+)
+
+add_custom_target(validate-pluma-assets ALL
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/validate_color_scheme_assets.py
+    DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/assets/color-scheme.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/locales/en.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/locales/es.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/validate_color_scheme_assets.py
+    COMMENT "Validating Pluma color scheme assets"
+)
+
 
 # --- Installation ---
 include(GNUInstallDirs)
@@ -53,11 +77,24 @@ install(DIRECTORY locales/
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/horizon/apps/pluma-writer/locales
 )
 
+install(FILES assets/color-scheme.json
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/horizon/apps/pluma-writer
+)
+
 add_custom_command(TARGET pluma-writer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_CURRENT_SOURCE_DIR}/locales
     $<TARGET_FILE_DIR:pluma-writer>/locales
     COMMENT "Copying app locales to build directory"
+)
+
+add_custom_command(TARGET pluma-writer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+    $<TARGET_FILE_DIR:pluma-writer>/assets
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${CMAKE_CURRENT_SOURCE_DIR}/assets/color-scheme.json
+    $<TARGET_FILE_DIR:pluma-writer>/assets/color-scheme.json
+    COMMENT "Copying app color scheme to build directory"
 )
 
 install(DIRECTORY assets/icons/scalable/
@@ -91,4 +128,3 @@ set(CPACK_DEBIAN_PACKAGE_SECTION "editors")
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
 
 include(CPack)
-

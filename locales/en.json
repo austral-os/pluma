@@ -180,6 +180,12 @@
             "unsaved_message": "This document has unsaved changes. Do you want to close it anyway?",
             "unsaved_title": "Unsaved Changes"
         },
+        "preferences": {
+            "general": "General",
+            "color_scheme": "Color scheme",
+            "color_scheme_default": "Default (System)",
+            "color_scheme_office_2007": "Office 2007"
+        },
         "fields": {
             "page_number": "Page number",
             "page_count": "Page count",

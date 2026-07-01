@@ -180,6 +180,12 @@
             "unsaved_message": "Este documento tiene cambios sin guardar. ¿Querés cerrarlo de todos modos?",
             "unsaved_title": "Cambios sin guardar"
         },
+        "preferences": {
+            "general": "General",
+            "color_scheme": "Esquema de color",
+            "color_scheme_default": "Predeterminado (Sistema)",
+            "color_scheme_office_2007": "Office 2007"
+        },
         "fields": {
             "page_number": "Número de página",
             "page_count": "Total de páginas",
