@@ -132,6 +132,16 @@
             "ls_double": "Double",
             "ls_proportional": "Proportional"
         },
+        "image_dialog": {
+            "title": "Image Properties",
+            "size": "Size",
+            "dimensions": "Dimensions",
+            "width": "Width:",
+            "height": "Height:",
+            "cm": "cm",
+            "aspect_ratio": "Maintain aspect ratio",
+            "properties": "Image Properties..."
+        },
         "table_dialog": {
             "title": "Table Properties",
             "borders": "Borders",

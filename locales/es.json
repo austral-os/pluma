@@ -132,6 +132,16 @@
             "ls_double": "Doble",
             "ls_proportional": "Proporcional"
         },
+        "image_dialog": {
+            "title": "Propiedades de la Imagen",
+            "size": "Tamaño",
+            "dimensions": "Dimensiones",
+            "width": "Ancho:",
+            "height": "Alto:",
+            "cm": "cm",
+            "aspect_ratio": "Mantener proporción",
+            "properties": "Propiedades de la imagen..."
+        },
         "table_dialog": {
             "title": "Propiedades de la tabla",
             "borders": "Bordes",

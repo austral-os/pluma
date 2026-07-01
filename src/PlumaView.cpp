@@ -16,6 +16,7 @@
 #include <pluma/dialogs/FontDialog.hpp>
 #include <pluma/dialogs/ParagraphDialog.hpp>
 #include <pluma/dialogs/TableDialog.hpp>
+#include <pluma/dialogs/ImageDialog.hpp>
 #include <string>
 #include <fstream>
 #include <unistd.h>
@@ -887,6 +888,54 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
             menu->add_item(std::move(ignore_item));
             menu->add_separator();
         }
+    }
+
+    // --- Image Properties ---
+    if (m_editor->isImageSelected()) {
+        auto props_item = std::make_unique<horizon::MenuItem>(
+            horizon::i18n().tr("pluma-writer.image_dialog.properties"));
+        props_item->when_click.connect([this](auto&) {
+            if (application()) {
+                application()->add_timer(50, [this]() {
+                    auto dlg = std::make_unique<pluma_app::dialogs::ImageDialog>();
+
+                    if (m_editor) {
+                        auto [w_pt, h_pt] = m_editor->getSelectedImageSize();
+                        dlg->set_initial_size(w_pt, h_pt);
+                    }
+
+                    dlg->when_accepted.connect([this](pluma_app::dialogs::ImageSizeEvent& ev) {
+                        if (!m_editor) return;
+                        auto sel = m_editor->getSelectionRange();
+                        uint32_t offset = sel.head;
+
+                        // Find the image tag start
+                        auto snapshot = m_editor->getSnapshot();
+                        if (snapshot) {
+                            std::string text = snapshot->getText();
+                            while (offset > 0) {
+                                if (text.compare(offset, 7, "|IMAGE:") == 0) break;
+                                offset--;
+                            }
+                        }
+
+                        m_editor->beginUndoTransaction();
+                        m_editor->suspendLayout();
+                        m_editor->applyStyle(offset, 1, pluma::PropertyId::ImageWidth, ev.width_pt);
+                        m_editor->applyStyle(offset, 1, pluma::PropertyId::ImageHeight, ev.height_pt);
+                        m_editor->resumeLayout();
+                        m_editor->commitUndoTransaction();
+
+                        calculate_layout();
+                        invalidate();
+                        if (parent()) parent()->invalidate();
+                    });
+                    dlg->run();
+                }, false);
+            }
+        });
+        menu->add_item(std::move(props_item));
+        menu->add_separator();
     }
 
     if (m_editor->isInTable()) {
