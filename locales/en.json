@@ -166,6 +166,10 @@
         "context_menu": {
             "delete_blank_page": "Delete Blank Page"
         },
+        "save_check": {
+            "unsaved_message": "This document has unsaved changes. Do you want to close it anyway?",
+            "unsaved_title": "Unsaved Changes"
+        },
         "fields": {
             "page_number": "Page number",
             "page_count": "Page count",

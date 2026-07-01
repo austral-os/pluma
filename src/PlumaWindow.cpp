@@ -346,6 +346,14 @@ PlumaWindow::PlumaWindow(const std::string& initial_file) : horizon::Application
   m_tabs->set_closable_tabs(true);
 
   m_tabs->when_tab_close_requested.connect([this](int index) {
+    auto *body = m_tabs->tab_body(index);
+    if (body && application()->has_dirty_save_check_widgets(body)) {
+      if (!application()->confirm(
+            horizon::i18n().tr("pluma-writer.save_check.unsaved_message"),
+            horizon::i18n().tr("pluma-writer.save_check.unsaved_title"))) {
+        return; // Cancel close
+      }
+    }
     m_tabs->remove_tab(index);
     if (index >= 0 && index < m_home_sections.size()) {
       m_home_sections.erase(m_home_sections.begin() + index);

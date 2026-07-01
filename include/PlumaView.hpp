@@ -41,6 +41,10 @@ public:
     // Undo/Redo Support
     bool supports_undo() const override { return true; }
 
+    // Save Check Support
+    bool supports_save_check() const override { return true; }
+    bool is_content_modified() const override;
+
     // Print Support
     bool supports_printing() const override { return true; }
     horizon::print::PrintDocument generate_print_document(const horizon::print::PrintConfig& config) override;

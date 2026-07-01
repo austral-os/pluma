@@ -571,6 +571,7 @@ bool PlumaView::load_document(const std::string &path) {
   pluma::plugins::PlumaArchiveImporter importer;
   bool success = importer.importFile(path, *m_editor);
   if (success) {
+    m_editor->markContentUnmodified();
     if (m_spell_service) {
         for (const auto& w : m_editor->getIgnoredWords()) {
             m_spell_service->ignoreWord(w);
@@ -583,17 +584,28 @@ bool PlumaView::load_document(const std::string &path) {
   return success;
 }
 
+bool PlumaView::is_content_modified() const {
+  if (m_editor) return m_editor->isContentModifiedSinceSave();
+  return false;
+}
+
 bool PlumaView::save_document(const std::string &path) {
   if (!m_editor)
     return false;
-    
+  
+  bool ok = false;
   if (path.length() >= 4 && path.substr(path.length() - 4) == ".pdf") {
     pluma::plugins::PdfExporter exporter;
-    return exporter.exportToFile(path, *m_editor);
+    ok = exporter.exportToFile(path, *m_editor);
+  } else {
+    pluma::plugins::PlumaArchiveExporter exporter;
+    ok = exporter.exportToFile(path, *m_editor);
   }
   
-  pluma::plugins::PlumaArchiveExporter exporter;
-  return exporter.exportToFile(path, *m_editor);
+  if (ok) {
+    m_editor->markContentUnmodified();
+  }
+  return ok;
 }
 
 bool PlumaView::can_perform(horizon::ClipboardAction action) const {

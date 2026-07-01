@@ -166,6 +166,10 @@
         "context_menu": {
             "delete_blank_page": "Eliminar página en blanco"
         },
+        "save_check": {
+            "unsaved_message": "Este documento tiene cambios sin guardar. ¿Querés cerrarlo de todos modos?",
+            "unsaved_title": "Cambios sin guardar"
+        },
         "fields": {
             "page_number": "Número de página",
             "page_count": "Total de páginas",
