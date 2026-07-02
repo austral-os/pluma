@@ -104,4 +104,22 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS "libpluma (>= 0.1.0), libhorizon")
 set(CPACK_DEBIAN_PACKAGE_SECTION "editors")
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
 
+# --- Testing ---
+# Standalone test executable (no external dependencies, no network).
+option(BUILD_TESTS "Build pluma-writer unit tests" ON)
+
+if(BUILD_TESTS)
+    enable_testing()
+
+    add_executable(pluma_writer_tests
+        tests/test_list_paragraph.cpp
+    )
+
+    target_include_directories(pluma_writer_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+
+    add_test(NAME paragraph_tests COMMAND pluma_writer_tests)
+endif()
+
 include(CPack)

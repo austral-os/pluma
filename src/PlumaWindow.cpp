@@ -20,6 +20,8 @@
 #include <horizon/TableColumn.hpp>
 #include <horizon/Panel.hpp>
 #include <unicode/locid.h>
+#include <vector>
+#include "utils/TextParagraphUtils.hpp"
 
 struct LanguageItem {
     std::string id;
@@ -1037,51 +1039,52 @@ void PlumaWindow::create_tab(const std::string &title,
         if (view_ptr && view_ptr->editor()) {
           auto editor = view_ptr->editor();
           auto selection = editor->getSelectionRange();
-          uint32_t para_start = selection.getStart();
           std::string text = editor->getText();
-          while (para_start > 0 && text[para_start - 1] != '\n') para_start--;
-          
-          uint32_t para_end = selection.getEnd();
-          while (para_end < text.length() && text[para_end] != '\n') para_end++;
 
-          std::string para_text = text.substr(para_start, para_end - para_start);
-          
-          size_t search_start = 0;
-          if (para_text.substr(0, 8) == "|INDENT:") {
-              size_t end_tag = para_text.find("|", 8);
-              if (end_tag != std::string::npos) {
-                  search_start = end_tag + 1;
-              }
-          }
-          
-          size_t end_list_tag = std::string::npos;
-          if (para_text.substr(search_start, 4) == "|UL:" || para_text.substr(search_start, 4) == "|OL:") {
-              end_list_tag = para_text.find("|", search_start + 4);
-          }
-          
-          std::string new_tag = "";
-          if (ctx.button_index == 0) { // Bullet
-              if (para_text.substr(search_start, 4) == "|UL:") {
-                  // toggle off
-              } else {
-                  new_tag = "|UL:1:disc|";
-              }
-          } else if (ctx.button_index == 1) { // Number
-              if (para_text.substr(search_start, 4) == "|OL:") {
-                  // toggle off
-              } else {
-                  new_tag = "|OL:1:1|";
-              }
-          }
+          auto paragraph_starts = utils::getSelectedParagraphStarts(
+              text, selection.getStart(), selection.getEnd());
 
-          if (end_list_tag != std::string::npos) {
-              editor->setSelection(para_start + search_start, para_start + end_list_tag + 1);
-              editor->deleteSelection();
-          }
-          
-          if (!new_tag.empty()) {
-              editor->setSelection(para_start + search_start, para_start + search_start);
-              editor->insertTextAtCursor(new_tag);
+          for (auto it = paragraph_starts.rbegin(); it != paragraph_starts.rend(); ++it) {
+              uint32_t para_start = *it;
+              uint32_t para_end = para_start;
+              while (para_end < text.length() && text[para_end] != '\n') para_end++;
+
+              std::string para_text = text.substr(para_start, para_end - para_start);
+              size_t search_start = 0;
+              if (para_text.substr(0, 8) == "|INDENT:") {
+                  size_t end_tag = para_text.find("|", 8);
+                  if (end_tag != std::string::npos) {
+                      search_start = end_tag + 1;
+                  }
+              }
+
+              size_t end_list_tag = std::string::npos;
+              const bool has_ul = para_text.substr(search_start, 4) == "|UL:";
+              const bool has_ol = para_text.substr(search_start, 4) == "|OL:";
+              if (has_ul || has_ol) {
+                  end_list_tag = para_text.find("|", search_start + 4);
+              }
+
+              std::string new_tag;
+              if (ctx.button_index == 0) { // Bullet
+                  if (!has_ul) {
+                      new_tag = "|UL:1:disc|";
+                  }
+              } else if (ctx.button_index == 1) { // Number
+                  if (!has_ol) {
+                      new_tag = "|OL:1:1|";
+                  }
+              }
+
+              if (end_list_tag != std::string::npos) {
+                  editor->setSelection(para_start + search_start, para_start + end_list_tag + 1);
+                  editor->deleteSelection();
+              }
+
+              if (!new_tag.empty()) {
+                  editor->setSelection(para_start + search_start, para_start + search_start);
+                  editor->insertTextAtCursor(new_tag);
+              }
           }
           
           view_ptr->calculate_layout();
