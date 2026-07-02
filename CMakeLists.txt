@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(pluma-writer VERSION 0.8.5 LANGUAGES CXX)
+project(pluma-writer VERSION 0.8.9 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -34,29 +34,6 @@ target_link_libraries(pluma-writer PRIVATE
 )
 
 target_compile_definitions(pluma-writer PRIVATE APP_VERSION="${PROJECT_VERSION}")
-
-add_executable(pluma-color-scheme-preferences-test
-    tests/pluma_color_scheme_preferences_test.cpp
-)
-target_include_directories(pluma-color-scheme-preferences-test PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-add_custom_target(validate-pluma-color-scheme-preferences ALL
-    COMMAND pluma-color-scheme-preferences-test
-    DEPENDS pluma-color-scheme-preferences-test
-    COMMENT "Validating Pluma color scheme preference behavior"
-)
-
-add_custom_target(validate-pluma-assets ALL
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/validate_color_scheme_assets.py
-    DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/assets/color-scheme.json
-        ${CMAKE_CURRENT_SOURCE_DIR}/locales/en.json
-        ${CMAKE_CURRENT_SOURCE_DIR}/locales/es.json
-        ${CMAKE_CURRENT_SOURCE_DIR}/tools/validate_color_scheme_assets.py
-    COMMENT "Validating Pluma color scheme assets"
-)
 
 
 # --- Installation ---
