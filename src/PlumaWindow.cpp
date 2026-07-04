@@ -22,6 +22,8 @@
 #include <unicode/locid.h>
 #include <vector>
 #include "utils/TextParagraphUtils.hpp"
+#include "pluma/dialogs/LinkDialog.hpp"
+#include "pluma/dialogs/BookmarkDialog.hpp"
 
 struct LanguageItem {
     std::string id;
@@ -1032,6 +1034,78 @@ void PlumaWindow::create_tab(const std::string &title,
           view_ptr->set_focus(true);
         }
       });
+
+  // ── Insert Hyperlink button ──────────────────────────────────────────
+  m_insert_sections.back()->btn_hyperlink()->when_mouse_press.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          auto sel = editor->getSelectionRange();
+          if (sel.isCollapsed()) {
+            application()->alert(
+                horizon::i18n().tr("pluma-writer.link_dialog.err_no_selection"),
+                horizon::i18n().tr("pluma-writer.title"),
+                horizon::MessageType::Info);
+            return;
+          }
+
+          auto dlg = std::make_unique<pluma_app::dialogs::LinkDialog>();
+          dlg->set_bookmarks(editor->listBookmarks());
+          dlg->set_initial_data(sel.getStart(), sel.getLength(), "", "");
+
+          dlg->when_accepted.connect(
+              [this, view_ptr](pluma_app::dialogs::LinkDialogAcceptedContext& ctx) {
+                if (view_ptr && view_ptr->editor()) {
+                  view_ptr->editor()->applyHyperlink(
+                      ctx.start, ctx.length, ctx.type, ctx.target);
+                  view_ptr->calculate_layout();
+                  view_ptr->invalidate();
+                  if (view_ptr->parent()) {
+                    view_ptr->parent()->calculate_layout();
+                    view_ptr->parent()->invalidate();
+                  }
+                }
+              });
+
+          dlg->run();
+        }
+      });
+
+  // ── Insert Bookmark button ───────────────────────────────────────────
+  m_insert_sections.back()->btn_bookmark()->when_mouse_press.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          uint32_t cursor_offset = editor->getCursorOffset();
+
+          auto bookmarks = editor->listBookmarks();
+          std::vector<std::string> existing_names;
+          existing_names.reserve(bookmarks.size());
+          for (const auto& bm : bookmarks) {
+            existing_names.push_back(bm.name);
+          }
+
+          auto dlg = std::make_unique<pluma_app::dialogs::BookmarkDialog>();
+          dlg->set_existing_bookmarks(existing_names);
+          dlg->set_cursor_offset(cursor_offset);
+
+          dlg->when_accepted.connect(
+              [this, view_ptr](pluma_app::dialogs::BookmarkDialogAcceptedContext& ctx) {
+                if (view_ptr && view_ptr->editor()) {
+                  view_ptr->editor()->createBookmark(ctx.name);
+                  view_ptr->calculate_layout();
+                  view_ptr->invalidate();
+                  if (view_ptr->parent()) {
+                    view_ptr->parent()->calculate_layout();
+                    view_ptr->parent()->invalidate();
+                  }
+                }
+              });
+
+          dlg->run();
+        }
+      });
+
   // ────────────────────────────────────────────────────────────────────────
 
   m_home_sections.back()->group_lists()->when_button_clicked.connect(

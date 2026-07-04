@@ -17,6 +17,7 @@
 #include <pluma/dialogs/ParagraphDialog.hpp>
 #include <pluma/dialogs/TableDialog.hpp>
 #include <pluma/dialogs/ImageDialog.hpp>
+#include <pluma/dialogs/LinkDialog.hpp>
 #include <string>
 #include <fstream>
 #include <unistd.h>
@@ -204,7 +205,37 @@ PlumaView::PlumaView() : horizon::Widget() {
       return;
     }
 
-    if (m_editor) {
+    if (!m_editor) return;
+
+    // ── Ctrl+Click: dispatch hyperlinks (url/mailto/internal) ──────────
+    bool ctrl_held =
+        (ctx.modifiers & static_cast<uint32_t>(horizon::WaylandWindow::Modifier::CTRL)) != 0;
+    bool is_left = (ctx.button == 272 || ctx.button == 1);
+
+    if (ctrl_held && is_left) {
+      // Resolve click position, then check for a hyperlink at that offset.
+      // We call onMouseDown/onMouseUp to let the editor resolve (x,y) → offset
+      // via its internal CaretResolver path, then immediately end any drag state.
+      m_editor->onMouseDown(local_x, local_y, pluma::MouseButton::Left,
+                            static_cast<pluma::ModifierFlags>(ctx.modifiers));
+      m_editor->onMouseUp(local_x, local_y, pluma::MouseButton::Left,
+                          static_cast<pluma::ModifierFlags>(ctx.modifiers));
+
+      auto hyperlink = m_editor->getHyperlinkAt(m_editor->getCursorOffset());
+      if (hyperlink) {
+        dispatch_link(*hyperlink, m_editor);
+        invalidate();
+        if (parent()) parent()->invalidate();
+        return;
+      }
+      // No hyperlink at click position — cursor is already moved to the click
+      // position, which is the expected behaviour for a normal click.
+      invalidate();
+      return;
+    }
+
+    // ── Normal mouse handling ────────────────────────────────────────
+    {
       pluma::MouseButton pbtn = pluma::MouseButton::None;
       if (ctx.button == 272 || ctx.button == 1)
         pbtn = pluma::MouseButton::Left;
@@ -312,6 +343,14 @@ PlumaView::PlumaView() : horizon::Widget() {
       m_editor->syncLayout();
       double local_x = (ctx.x - x()) / m_zoom;
       double local_y = (ctx.y - y()) / m_zoom;
+
+      // Ctrl held → check for hyperlink under cursor
+      bool ctrl_held = (ctx.modifiers & static_cast<uint32_t>(horizon::WaylandWindow::Modifier::CTRL)) != 0;
+      if (ctrl_held && m_editor->getHyperlinkAt(local_x, local_y)) {
+          set_cursor_type(horizon::CursorType::Pointer);
+          return;
+      }
+
       auto cursor = m_editor->getCursorTypeAt(local_x, local_y);
       if (cursor == pluma::CursorType::Text) {
           set_cursor_type(horizon::CursorType::Text);
@@ -776,6 +815,29 @@ void PlumaView::triggerAnalysis() {
     });
 }
 
+void PlumaView::dispatch_link(const pluma::PlumaEditor::HyperlinkInfo& link,
+                              std::shared_ptr<pluma::PlumaEditor> editor) {
+    if (link.type == "internal") {
+        editor->scrollToBookmark(link.target);
+    } else {
+        // URL or mailto — open with system handler via xdg-open
+        // Using fork+exec to avoid shell injection.
+        std::string uri;
+        if (link.type == "url") {
+            uri = link.target;
+        } else if (link.type == "mailto") {
+            uri = "mailto:" + link.target;
+        }
+        if (!uri.empty()) {
+            pid_t pid = fork();
+            if (pid == 0) {
+                execl("/usr/bin/xdg-open", "xdg-open", uri.c_str(), nullptr);
+                _exit(1);
+            }
+        }
+    }
+}
+
 std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, double local_y) {
     auto menu = std::make_unique<horizon::Menu>();
     if (!m_editor) return menu;
@@ -886,6 +948,64 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                 if (parent()) parent()->invalidate();
             });
             menu->add_item(std::move(ignore_item));
+            menu->add_separator();
+        }
+    }
+
+    // --- Hyperlink context menu ---
+    {
+        auto hyperlink_opt = m_editor->getHyperlinkAt(head);
+        if (hyperlink_opt) {
+            // Find the hyperlink span extent while head is stable
+            uint32_t span_start = head;
+            uint32_t span_length = 1;
+            for (const auto& span : m_editor->getFormatRegistry().getSpans()) {
+                if (head >= span.start && head < span.start + span.length) {
+                    if (span.style.get(pluma::PropertyId::HyperlinkTarget).has_value()) {
+                        span_start = span.start;
+                        span_length = span.length;
+                        break;
+                    }
+                }
+            }
+
+            auto follow_item = std::make_unique<horizon::MenuItem>(
+                horizon::i18n().tr("pluma-writer.link_dialog.follow_link"));
+            follow_item->when_click.connect([this, hl = *hyperlink_opt](auto&) {
+                if (m_editor) dispatch_link(hl, m_editor);
+            });
+            menu->add_item(std::move(follow_item));
+
+            auto edit_item = std::make_unique<horizon::MenuItem>(
+                horizon::i18n().tr("pluma-writer.link_dialog.edit_link"));
+            edit_item->when_click.connect(
+                [this, hl = *hyperlink_opt, span_start, span_length](auto&) {
+                    if (application() && m_editor) {
+                        application()->add_timer(50, [this, hl, span_start, span_length]() {
+                            auto dlg = std::make_unique<pluma_app::dialogs::LinkDialog>();
+                            dlg->set_bookmarks(m_editor->listBookmarks());
+                            dlg->set_initial_data(span_start, span_length, hl.type, hl.target);
+
+                            dlg->when_accepted.connect(
+                                [this](pluma_app::dialogs::LinkDialogAcceptedContext& ev) {
+                                    if (m_editor) {
+                                        m_editor->applyHyperlink(
+                                            ev.start, ev.length, ev.type, ev.target);
+                                        m_editor->setSelection(ev.start, ev.start + ev.length);
+                                        calculate_layout();
+                                        invalidate();
+                                        if (parent()) {
+                                            parent()->calculate_layout();
+                                            parent()->invalidate();
+                                        }
+                                    }
+                                });
+                            dlg->run();
+                        }, false);
+                    }
+                });
+            menu->add_item(std::move(edit_item));
+
             menu->add_separator();
         }
     }
