@@ -219,6 +219,15 @@
             "ok": "OK",
             "cancel": "Cancel"
         },
+        "crossref_dialog": {
+            "title": "Cross-References",
+            "header": "Edit cross-reference display names:",
+            "no_entries": "No cross-references available",
+            "type_image": "Image",
+            "type_table": "Table",
+            "ok": "OK",
+            "cancel": "Cancel"
+        },
         "fields": {
             "page_number": "Page number",
             "page_count": "Page count",

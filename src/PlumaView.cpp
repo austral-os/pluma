@@ -817,7 +817,9 @@ void PlumaView::triggerAnalysis() {
 
 void PlumaView::dispatch_link(const pluma::PlumaEditor::HyperlinkInfo& link,
                               std::shared_ptr<pluma::PlumaEditor> editor) {
-    if (link.type == "internal") {
+    if (link.type == "crossref") {
+        editor->scrollToCrossReference(link.target);
+    } else if (link.type == "internal") {
         editor->scrollToBookmark(link.target);
     } else {
         // URL or mailto — open with system handler via xdg-open

@@ -69,7 +69,7 @@ public:
 
     void set_application_recursive(horizon::WaylandWindow *app) override;
 
-    /// Dispatch a hyperlink: url/mailto → xdg-open, internal → scrollToBookmark
+    /// Dispatch a hyperlink: url/mailto → xdg-open, internal → scrollToBookmark, crossref → scrollToCrossReference
     void dispatch_link(const pluma::PlumaEditor::HyperlinkInfo& link,
                        std::shared_ptr<pluma::PlumaEditor> editor);
 

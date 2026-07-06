@@ -219,6 +219,15 @@
             "ok": "Aceptar",
             "cancel": "Cancelar"
         },
+        "crossref_dialog": {
+            "title": "Referencias Cruzadas",
+            "header": "Editar nombres de referencias cruzadas:",
+            "no_entries": "No hay referencias cruzadas disponibles",
+            "type_image": "Imagen",
+            "type_table": "Tabla",
+            "ok": "Aceptar",
+            "cancel": "Cancelar"
+        },
         "fields": {
             "page_number": "Número de página",
             "page_count": "Cantidad de páginas",

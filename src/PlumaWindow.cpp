@@ -24,6 +24,7 @@
 #include "utils/TextParagraphUtils.hpp"
 #include "pluma/dialogs/LinkDialog.hpp"
 #include "pluma/dialogs/BookmarkDialog.hpp"
+#include "pluma/dialogs/CrossRefDialog.hpp"
 
 struct LanguageItem {
     std::string id;
@@ -1093,6 +1094,36 @@ void PlumaWindow::create_tab(const std::string &title,
               [this, view_ptr](pluma_app::dialogs::BookmarkDialogAcceptedContext& ctx) {
                 if (view_ptr && view_ptr->editor()) {
                   view_ptr->editor()->createBookmark(ctx.name);
+                  view_ptr->calculate_layout();
+                  view_ptr->invalidate();
+                  if (view_ptr->parent()) {
+                    view_ptr->parent()->calculate_layout();
+                    view_ptr->parent()->invalidate();
+                  }
+                }
+              });
+
+          dlg->run();
+        }
+      });
+
+  // ── Insert Cross-reference button ──────────────────────────────────────
+  m_insert_sections.back()->btn_cross_ref()->when_mouse_press.connect(
+      [this, view_ptr = raw_view_ptr](horizon::MouseButtonEventContext &) {
+        if (view_ptr && view_ptr->editor()) {
+          auto editor = view_ptr->editor();
+          auto& mgr = editor->getCrossRefManager();
+
+          auto dlg =
+              std::make_unique<pluma_app::dialogs::CrossRefDialog>();
+          dlg->set_cross_ref_manager(&mgr);
+
+          dlg->when_accepted.connect(
+              [this, view_ptr](
+                  pluma_app::dialogs::CrossRefDialogAcceptedContext& ctx) {
+                if (view_ptr && view_ptr->editor()) {
+                  // Display names are already persisted by the dialog.
+                  // Re-layout to update CROSSREF display_text resolution.
                   view_ptr->calculate_layout();
                   view_ptr->invalidate();
                   if (view_ptr->parent()) {
