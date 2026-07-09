@@ -1198,6 +1198,7 @@ void PlumaWindow::create_tab(const std::string &title,
             view_ptr->parent()->invalidate();
           }
           this->update_ribbon_state(view_ptr, home_ptr);
+          view_ptr->set_focus(true);
         }
       });
 
@@ -1305,6 +1306,7 @@ void PlumaWindow::create_tab(const std::string &title,
             view_ptr->parent()->invalidate();
           }
           this->update_ribbon_state(view_ptr, home_ptr);
+          view_ptr->set_focus(true);
         }
       });
 

@@ -47,6 +47,7 @@ std::optional<std::string> uuid_from_marker_at(const std::string& text,
     if (!is_uuid(candidate)) return std::nullopt;
     return candidate;
 }
+
 } // namespace
 
 class RealCairoShaper : public pluma::ITextShaper {
@@ -398,7 +399,10 @@ PlumaView::PlumaView() : horizon::Widget() {
     bool handled = m_editor->onKeyPress(
         ctx.keysym, static_cast<pluma::ModifierFlags>(ctx.modifiers));
     if (!handled) {
-      if (ctx.keysym == 0xff0d || ctx.keysym == 0xff8d) { // Return or KP_Enter
+      if ((ctx.keysym == 0xff09 || ctx.keysym == 0xfe20) && !(ctx.modifiers & (horizon::WaylandWindow::Modifier::CTRL | horizon::WaylandWindow::Modifier::ALT))) { // Tab or ISO_Left_Tab
+        int delta = (ctx.modifiers & horizon::WaylandWindow::Modifier::SHIFT) ? -1 : 1;
+        handled = m_editor->adjustCurrentListLevel(delta);
+      } else if (ctx.keysym == 0xff0d || ctx.keysym == 0xff8d) { // Return or KP_Enter
         m_editor->onTextInput("\n");
         handled = true;
       } else if (ctx.keysym == 0xff1b) { // Escape
