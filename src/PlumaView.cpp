@@ -18,6 +18,7 @@
 #include <pluma/dialogs/TableDialog.hpp>
 #include <pluma/dialogs/ImageDialog.hpp>
 #include <pluma/dialogs/LinkDialog.hpp>
+#include <pluma/dialogs/ListDialog.hpp>
 #include <string>
 #include <fstream>
 #include <unistd.h>
@@ -1307,22 +1308,82 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
             if (et != std::string::npos) st = et + 1;
         }
 
-        if (ptext.length() >= st + 4 && ptext.substr(st, 4) == "|OL:") {
-            menu->add_separator();
-            auto cont_item = std::make_unique<horizon::MenuItem>(
-                horizon::i18n().tr("pluma-writer.context_menu.continue_numbering"));
-            cont_item->when_click.connect([this](auto&) {
-                if (m_editor) {
-                    m_editor->continuePreviousOrderedList();
-                    calculate_layout();
-                    invalidate();
-                    if (parent()) {
-                        parent()->calculate_layout();
-                        parent()->invalidate();
-                    }
+        if (ptext.length() >= st + 4 && (ptext.substr(st, 4) == "|OL:" || ptext.substr(st, 4) == "|UL:")) {
+            bool is_ol = (ptext.substr(st, 4) == "|OL:");
+
+            // Parse the style from the tag for initial dialog state
+            size_t p_end = ptext.find("|", st + 4);
+            std::string list_style;
+            if (p_end != std::string::npos) {
+                std::string tag_content = ptext.substr(st + 4, p_end - st - 4);
+                size_t col = tag_content.find(":");
+                if (col != std::string::npos) {
+                    std::string rest = tag_content.substr(col + 1);
+                    size_t sp = rest.find(":start=");
+                    list_style = (sp != std::string::npos) ? rest.substr(0, sp) : rest;
                 }
-            });
-            menu->add_item(std::move(cont_item));
+            }
+            if (list_style.empty()) list_style = is_ol ? "1" : "disc";
+
+            if (is_ol) {
+                menu->add_separator();
+                auto cont_item = std::make_unique<horizon::MenuItem>(
+                    horizon::i18n().tr("pluma-writer.context_menu.continue_numbering"));
+                cont_item->when_click.connect([this](auto&) {
+                    if (m_editor) {
+                        m_editor->continuePreviousOrderedList();
+                        calculate_layout();
+                        invalidate();
+                        if (parent()) {
+                            parent()->calculate_layout();
+                            parent()->invalidate();
+                        }
+                    }
+                });
+                menu->add_item(std::move(cont_item));
+            }
+
+            // "List" menu item — opens ListDialog for both UL and OL
+            menu->add_separator();
+            auto list_item = std::make_unique<horizon::MenuItem>(
+                horizon::i18n().tr("pluma-writer.list_dialog.title"));
+            list_item->when_click.connect(
+                [this, is_ol, list_style](auto&) {
+                    if (application()) {
+                        application()->add_timer(50, [this, is_ol, list_style]() {
+                            auto dlg = std::make_unique<pluma_app::dialogs::ListDialog>();
+                            dlg->set_initial_list(is_ol, list_style);
+
+                            dlg->when_accepted.connect(
+                                [this](pluma_app::dialogs::ListSelectedEvent& ev) {
+                                    if (!m_editor) return;
+
+                                    switch (ev.action) {
+                                    case pluma_app::dialogs::ListSelectedEvent::ApplyStyle:
+                                        m_editor->applyListStyle(
+                                            ev.is_ordered ? "OL" : "UL", ev.style);
+                                        break;
+                                    case pluma_app::dialogs::ListSelectedEvent::Remove:
+                                        m_editor->removeCurrentList();
+                                        break;
+                                    case pluma_app::dialogs::ListSelectedEvent::Reset:
+                                        m_editor->resetCurrentListStyle();
+                                        break;
+                                    }
+
+                                    calculate_layout();
+                                    invalidate();
+                                    if (parent()) {
+                                        parent()->calculate_layout();
+                                        parent()->invalidate();
+                                    }
+                                });
+
+                            dlg->run();
+                        }, false);
+                    }
+                });
+            menu->add_item(std::move(list_item));
         }
     }
 

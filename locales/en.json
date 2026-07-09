@@ -177,6 +177,15 @@
             "ok": "OK",
             "cancel": "Cancel"
         },
+        "list_dialog": {
+            "title": "List",
+            "unordered": "Unordered",
+            "ordered": "Ordered",
+            "select_bullet": "Select a bullet style:",
+            "select_numbering": "Select a numbering style:",
+            "remove": "Remove",
+            "reset": "Reset"
+        },
         "context_menu": {
             "delete_blank_page": "Delete Blank Page",
             "continue_numbering": "Continue Numbering"
