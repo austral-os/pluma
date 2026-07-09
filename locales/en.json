@@ -178,7 +178,8 @@
             "cancel": "Cancel"
         },
         "context_menu": {
-            "delete_blank_page": "Delete Blank Page"
+            "delete_blank_page": "Delete Blank Page",
+            "continue_numbering": "Continue Numbering"
         },
         "save_check": {
             "unsaved_message": "This document has unsaved changes. Do you want to close it anyway?",

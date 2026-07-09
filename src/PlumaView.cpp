@@ -1288,6 +1288,44 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
         menu->add_separator();
     }
 
+    // --- Ordered List: Continue Numbering ---
+    if (m_editor) {
+        uint32_t cursor = m_editor->getCursorOffset();
+        std::string doc_text = m_editor->getText();
+        if (cursor > doc_text.length()) cursor = static_cast<uint32_t>(doc_text.length());
+
+        uint32_t pstart = cursor;
+        while (pstart > 0 && doc_text[pstart - 1] != '\n') pstart--;
+
+        uint32_t pend = cursor;
+        while (pend < doc_text.length() && doc_text[pend] != '\n') pend++;
+
+        std::string ptext = doc_text.substr(pstart, pend - pstart);
+        size_t st = 0;
+        if (ptext.rfind("|INDENT:", 0) == 0) {
+            size_t et = ptext.find("|", 8);
+            if (et != std::string::npos) st = et + 1;
+        }
+
+        if (ptext.length() >= st + 4 && ptext.substr(st, 4) == "|OL:") {
+            menu->add_separator();
+            auto cont_item = std::make_unique<horizon::MenuItem>(
+                horizon::i18n().tr("pluma-writer.context_menu.continue_numbering"));
+            cont_item->when_click.connect([this](auto&) {
+                if (m_editor) {
+                    m_editor->continuePreviousOrderedList();
+                    calculate_layout();
+                    invalidate();
+                    if (parent()) {
+                        parent()->calculate_layout();
+                        parent()->invalidate();
+                    }
+                }
+            });
+            menu->add_item(std::move(cont_item));
+        }
+    }
+
     auto char_item = std::make_unique<horizon::MenuItem>(horizon::i18n().tr("pluma-writer.font_dialog.character"));
     char_item->when_click.connect([this](auto&) {
         if (application()) {
