@@ -15,6 +15,7 @@ struct ImageSizeEvent : public horizon::EventContext {
     void* sender = nullptr;
     float width_pt;   // in points
     float height_pt;  // in points
+    std::string element_name;
 };
 
 class ImageDialog : public horizon::WaylandWindow {
@@ -23,6 +24,7 @@ public:
 
     /// Sets the initial size in points (the dialog converts to cm for display)
     void set_initial_size(float width_pt, float height_pt);
+    void set_initial_name(const std::string& name);
 
     horizon::EventsManager<ImageSizeEvent> when_accepted;
 
@@ -30,6 +32,7 @@ private:
     horizon::Notebook* m_notebook;
     horizon::TextBox<horizon::DoublePolicy>* m_width_box;
     horizon::TextBox<horizon::DoublePolicy>* m_height_box;
+    horizon::TextBox<horizon::TextPolicy>* m_name_box;
     horizon::Checkbox<horizon::AquaObject>* m_aspect_ratio_check;
 
     float m_orig_width_pt{0};   // original width in points

@@ -134,6 +134,8 @@
         },
         "image_dialog": {
             "title": "Propiedades de la Imagen",
+            "general": "General",
+            "element_name": "Nombre del elemento:",
             "size": "Tamaño",
             "dimensions": "Dimensiones",
             "width": "Ancho:",
@@ -144,6 +146,8 @@
         },
         "table_dialog": {
             "title": "Propiedades de la tabla",
+            "general": "General",
+            "table_name": "Nombre de la tabla:",
             "borders": "Bordes",
             "line_arrangement": "Disposición de líneas",
             "presets": "Preestablecido:",
@@ -220,9 +224,14 @@
             "cancel": "Cancelar"
         },
         "crossref_dialog": {
-            "title": "Referencias Cruzadas",
-            "header": "Editar nombres de referencias cruzadas:",
-            "no_entries": "No hay referencias cruzadas disponibles",
+            "title": "Insertar referencia cruzada",
+            "header": "Seleccioná una imagen o tabla para referenciar:",
+            "search_placeholder": "Buscar destinos...",
+            "no_entries": "No hay imágenes ni tablas disponibles",
+            "no_matches": "No se encontraron destinos",
+            "type": "Tipo",
+            "name": "Nombre",
+            "uuid": "UUID",
             "type_image": "Imagen",
             "type_table": "Tabla",
             "ok": "Aceptar",

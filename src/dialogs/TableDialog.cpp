@@ -52,6 +52,26 @@ TableDialog::TableDialog()
   m_notebook = notebook.get();
 
   // ----------------------------------------------------
+  // Tab: General
+  // ----------------------------------------------------
+  auto general_tab = std::make_unique<horizon::Widget>();
+  general_tab->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+  general_tab->set_position_type(horizon::FILL);
+  general_tab->set_margin(20);
+  general_tab->set_spacing(10);
+
+  auto table_name_box = std::make_unique<horizon::TextBox<horizon::TextPolicy>>();
+  table_name_box->set_position_type(horizon::FILL);
+  m_table_name_box = table_name_box.get();
+  general_tab->add_child(create_input_row(
+      horizon::i18n().tr("pluma-writer.table_dialog.table_name"),
+      std::move(table_name_box), 0));
+  general_tab->add_child(horizon::Spacer());
+  m_notebook->add_tab(horizon::NotebookPage(
+      horizon::i18n().tr("pluma-writer.table_dialog.general"),
+      std::move(general_tab)));
+
+  // ----------------------------------------------------
   // Tab: Borders
   // ----------------------------------------------------
   auto borders_tab = std::make_unique<horizon::Widget>();
@@ -294,6 +314,7 @@ TableDialog::TableDialog()
     }
 
     ev.bg_color = m_bg_color_selector->color();
+    ev.table_name = m_table_name_box ? m_table_name_box->text() : "";
     ev.cell_vertical_alignment = m_valign_combo->selected_item_index();
 
     when_accepted.run(ev);
@@ -350,6 +371,10 @@ void TableDialog::populate_combos() {
 }
 
 void TableDialog::on_close() { this->quit(); }
+
+void TableDialog::set_initial_table_name(const std::string& name) {
+    if (m_table_name_box) m_table_name_box->set_text(name);
+}
 
 void TableDialog::set_initial_state(const bool borders[6], horizon::Color line_color, float line_thickness, int line_style, horizon::Color bg_color, int cell_vertical_alignment) {
     if (m_preview) {

@@ -24,8 +24,30 @@
 #include <iostream>
 #include <pluma/Optimization/ShaperCache.hpp>
 #include <pluma/Diagnostics/Profiler.hpp>
+#include <optional>
 
 namespace pluma_app {
+
+namespace {
+bool is_uuid(const std::string& value) {
+    return value.size() == 36 && value[8] == '-' && value[13] == '-' &&
+           value[18] == '-' && value[23] == '-';
+}
+
+std::optional<std::string> uuid_from_marker_at(const std::string& text,
+                                               size_t marker_start,
+                                               const std::string& prefix) {
+    if (marker_start == std::string::npos || text.compare(marker_start, prefix.size(), prefix) != 0) {
+        return std::nullopt;
+    }
+    size_t value_start = marker_start + prefix.size();
+    size_t first_colon = text.find(':', value_start);
+    if (first_colon == std::string::npos) return std::nullopt;
+    std::string candidate = text.substr(value_start, first_colon - value_start);
+    if (!is_uuid(candidate)) return std::nullopt;
+    return candidate;
+}
+} // namespace
 
 class RealCairoShaper : public pluma::ITextShaper {
 public:
@@ -550,12 +572,12 @@ void PlumaView::calculate_layout() {
   if (m_is_printing) return;
   horizon::Widget::calculate_layout();
 
-  // Flush deferred layout before reading geometry — preferred_width/height
-  // call getDocumentBounds() which reads current_pages_, and that may be stale
-  // after deferred single-character insertions.
-  if (m_editor) {
-    m_editor->syncLayout();
-  }
+  // Layout is NOT flushed here — single-character insertions defer layout
+  // to draw() via syncLayout(). Forcing layout here on every keystroke
+  // makes the keyPress handler block on a full document re-layout, which
+  // is the #1 cause of typing latency. The deferred layout is flushed by
+  // draw() before rendering, so geometry reads here may be 1-frame stale
+  // — acceptable for scroll bar calculations on single-char edits.
 
   int target_w = preferred_width();
   int target_h = preferred_height();
@@ -1021,10 +1043,21 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                 application()->add_timer(50, [this]() {
                     auto dlg = std::make_unique<pluma_app::dialogs::ImageDialog>();
 
-                    if (m_editor) {
-                        auto [w_pt, h_pt] = m_editor->getSelectedImageSize();
-                        dlg->set_initial_size(w_pt, h_pt);
-                    }
+                        if (m_editor) {
+                            auto [w_pt, h_pt] = m_editor->getSelectedImageSize();
+                            dlg->set_initial_size(w_pt, h_pt);
+                            auto sel = m_editor->getSelectionRange();
+                            uint32_t offset = sel.head;
+                            if (auto snapshot = m_editor->getSnapshot()) {
+                                std::string text = snapshot->getText();
+                                while (offset > 0 && text.compare(offset, 7, "|IMAGE:") != 0) offset--;
+                                if (auto uuid = uuid_from_marker_at(text, offset, "|IMAGE:")) {
+                                    if (auto name = m_editor->getCrossRefManager().getDisplayName(*uuid)) {
+                                        dlg->set_initial_name(*name);
+                                    }
+                                }
+                            }
+                        }
 
                     dlg->when_accepted.connect([this](pluma_app::dialogs::ImageSizeEvent& ev) {
                         if (!m_editor) return;
@@ -1045,6 +1078,12 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                         m_editor->suspendLayout();
                         m_editor->applyStyle(offset, 1, pluma::PropertyId::ImageWidth, ev.width_pt);
                         m_editor->applyStyle(offset, 1, pluma::PropertyId::ImageHeight, ev.height_pt);
+                        if (snapshot) {
+                            std::string text = snapshot->getText();
+                            if (auto uuid = uuid_from_marker_at(text, offset, "|IMAGE:")) {
+                                m_editor->getCrossRefManager().setDisplayName(*uuid, ev.element_name);
+                            }
+                        }
                         m_editor->resumeLayout();
                         m_editor->commitUndoTransaction();
 
@@ -1149,6 +1188,16 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                         }
 
                         dlg->set_initial_state(borders, line_color, line_thickness, line_style, bg_color, cell_valign);
+                        if (auto snapshot = m_editor->getSnapshot()) {
+                            std::string text = snapshot->getText();
+                            uint32_t table_offset = anchor;
+                            while (table_offset > 0 && text.compare(table_offset, 5, "|TBL:") != 0) table_offset--;
+                            if (auto uuid = uuid_from_marker_at(text, table_offset, "|TBL:")) {
+                                if (auto name = m_editor->getCrossRefManager().getDisplayName(*uuid)) {
+                                    dlg->set_initial_table_name(*name);
+                                }
+                            }
+                        }
                     }
 
                     dlg->when_accepted.connect([this](pluma_app::dialogs::TableBordersEvent& ev) {
@@ -1212,6 +1261,14 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
                         m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::BackgroundColor, bg_color);
                         
                         m_editor->applyStyle(sel.head, sel.getLength(), pluma::PropertyId::CellVerticalAlignment, static_cast<pluma::CellVerticalAlign>(ev.cell_vertical_alignment));
+                        if (auto snapshot = m_editor->getSnapshot()) {
+                            std::string text = snapshot->getText();
+                            uint32_t table_offset = sel.head;
+                            while (table_offset > 0 && text.compare(table_offset, 5, "|TBL:") != 0) table_offset--;
+                            if (auto uuid = uuid_from_marker_at(text, table_offset, "|TBL:")) {
+                                m_editor->getCrossRefManager().setDisplayName(*uuid, ev.table_name);
+                            }
+                        }
                         
                         m_editor->resumeLayout();
                         m_editor->commitUndoTransaction();

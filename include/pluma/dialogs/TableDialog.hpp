@@ -6,6 +6,8 @@
 #include <horizon/Combo.hpp>
 #include <horizon/ColorSelector.hpp>
 #include <horizon/Checkbox.hpp>
+#include <horizon/TextBox.hpp>
+#include <horizon/TextBoxPolicies.hpp>
 #include <string>
 
 namespace pluma_app {
@@ -22,6 +24,7 @@ struct TableBordersEvent : public horizon::EventContext {
     horizon::Color line_color;
     float line_thickness = 1.0f;
     horizon::Color bg_color;
+    std::string table_name;
     
     int cell_vertical_alignment = 0;
 };
@@ -33,6 +36,7 @@ public:
     horizon::EventsManager<TableBordersEvent> when_accepted;
     
     void set_initial_state(const bool borders[6], horizon::Color line_color, float line_thickness, int line_style, horizon::Color bg_color, int cell_vertical_alignment);
+    void set_initial_table_name(const std::string& name);
 
 private:
     horizon::Notebook* m_notebook;
@@ -48,6 +52,7 @@ private:
     
     horizon::ColorSelector* m_bg_color_selector;
     horizon::Combo* m_valign_combo;
+    horizon::TextBox<horizon::TextPolicy>* m_table_name_box;
     
     void on_close();
     void populate_combos();

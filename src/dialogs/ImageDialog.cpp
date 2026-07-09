@@ -29,6 +29,29 @@ ImageDialog::ImageDialog()
     auto notebook = std::make_unique<horizon::Notebook>();
     m_notebook = notebook.get();
 
+    auto general_tab = std::make_unique<horizon::Widget>();
+    general_tab->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
+    general_tab->set_position_type(horizon::FILL);
+    general_tab->set_margin(10);
+    general_tab->set_spacing(10);
+
+    auto name_row = std::make_unique<horizon::Widget>();
+    name_row->set_layout_type(horizon::WIDGET_LAYOUT_HORIZONTAL);
+    name_row->set_fixed_size(35);
+    auto name_label = std::make_unique<horizon::Label>(horizon::i18n().tr("pluma-writer.image_dialog.element_name"));
+    name_label->set_fixed_size(120);
+    name_row->add_child(std::move(name_label));
+    auto name_box = std::make_unique<horizon::TextBox<horizon::TextPolicy>>();
+    name_box->set_position_type(horizon::FILL);
+    m_name_box = name_box.get();
+    name_row->add_child(std::move(name_box));
+    general_tab->add_child(std::move(name_row));
+    general_tab->add_child(horizon::Spacer());
+
+    m_notebook->add_tab(horizon::NotebookPage(
+        horizon::i18n().tr("pluma-writer.image_dialog.general"),
+        std::move(general_tab)));
+
     // --- Tab 1: Size ---
     auto size_tab = std::make_unique<horizon::Widget>();
     size_tab->set_layout_type(horizon::WIDGET_LAYOUT_VERTICAL);
@@ -133,6 +156,7 @@ ImageDialog::ImageDialog()
         if (h_cm < 0.1f) h_cm = 0.1f;
         ev.width_pt = w_cm * kCmToPt;
         ev.height_pt = h_cm * kCmToPt;
+        ev.element_name = m_name_box ? m_name_box->text() : "";
         when_accepted.run(ev);
         this->on_close();
     });
@@ -151,6 +175,10 @@ ImageDialog::ImageDialog()
     m_height_box->when_text_changed.connect([this](horizon::EventContext&) {
         on_height_changed();
     });
+}
+
+void ImageDialog::set_initial_name(const std::string& name) {
+    if (m_name_box) m_name_box->set_text(name);
 }
 
 void ImageDialog::set_initial_size(float width_pt, float height_pt) {

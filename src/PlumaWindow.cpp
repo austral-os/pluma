@@ -1122,8 +1122,7 @@ void PlumaWindow::create_tab(const std::string &title,
               [this, view_ptr](
                   pluma_app::dialogs::CrossRefDialogAcceptedContext& ctx) {
                 if (view_ptr && view_ptr->editor()) {
-                  // Display names are already persisted by the dialog.
-                  // Re-layout to update CROSSREF display_text resolution.
+                  view_ptr->editor()->insertTextAtCursor("|CROSSREF:" + ctx.uuid + "|");
                   view_ptr->calculate_layout();
                   view_ptr->invalidate();
                   if (view_ptr->parent()) {

@@ -134,6 +134,8 @@
         },
         "image_dialog": {
             "title": "Image Properties",
+            "general": "General",
+            "element_name": "Element name:",
             "size": "Size",
             "dimensions": "Dimensions",
             "width": "Width:",
@@ -144,6 +146,8 @@
         },
         "table_dialog": {
             "title": "Table Properties",
+            "general": "General",
+            "table_name": "Table name:",
             "borders": "Borders",
             "line_arrangement": "Line arrangement",
             "presets": "Presets:",
@@ -220,9 +224,14 @@
             "cancel": "Cancel"
         },
         "crossref_dialog": {
-            "title": "Cross-References",
-            "header": "Edit cross-reference display names:",
-            "no_entries": "No cross-references available",
+            "title": "Insert Cross Reference",
+            "header": "Select an image or table to reference:",
+            "search_placeholder": "Search targets...",
+            "no_entries": "No images or tables available",
+            "no_matches": "No matching targets",
+            "type": "Type",
+            "name": "Name",
+            "uuid": "UUID",
             "type_image": "Image",
             "type_table": "Table",
             "ok": "OK",
