@@ -1,4 +1,5 @@
 #include "PlumaView.hpp"
+#include "pluma_app/ScrollSync.hpp"
 #include <horizon/Logger.hpp>
 #include <horizon/GraphicsContext.hpp>
 #include <horizon/I18n.hpp>
@@ -221,8 +222,8 @@ PlumaView::PlumaView() : horizon::Widget() {
       application()->set_focused_widget(this);
     }
 
-    double local_x = (ctx.x - x()) / m_zoom;
-    double local_y = (ctx.y - y()) / m_zoom;
+    syncEditorScrollFromParent();
+    auto [local_x, local_y] = toEditorCoords(ctx.x, ctx.y);
 
     // Let the parent ScrollArea handle scrollbar clicks
     if (local_x > width() - 20 || local_y > height() - 20) {
@@ -237,15 +238,15 @@ PlumaView::PlumaView() : horizon::Widget() {
     bool is_left = (ctx.button == 272 || ctx.button == 1);
 
     if (ctrl_held && is_left) {
-      // Resolve click position, then check for a hyperlink at that offset.
-      // We call onMouseDown/onMouseUp to let the editor resolve (x,y) → offset
-      // via its internal CaretResolver path, then immediately end any drag state.
+      // Check the clicked point directly before moving the caret. Using the
+      // caret offset after onMouseDown can miss links when the resolver places
+      // the caret at a nearby insertion boundary instead of inside the span.
+      auto hyperlink = m_editor->getHyperlinkAt(local_x, local_y);
       m_editor->onMouseDown(local_x, local_y, pluma::MouseButton::Left,
                             static_cast<pluma::ModifierFlags>(ctx.modifiers));
       m_editor->onMouseUp(local_x, local_y, pluma::MouseButton::Left,
                           static_cast<pluma::ModifierFlags>(ctx.modifiers));
 
-      auto hyperlink = m_editor->getHyperlinkAt(m_editor->getCursorOffset());
       if (hyperlink) {
         dispatch_link(*hyperlink, m_editor);
         invalidate();
@@ -279,8 +280,7 @@ PlumaView::PlumaView() : horizon::Widget() {
       application()->set_focused_widget(this);
     }
 
-    double local_x = (ctx.x - x()) / m_zoom;
-    double local_y = (ctx.y - y()) / m_zoom;
+    auto [local_x, local_y] = toEditorCoords(ctx.x, ctx.y);
 
     if (local_x > width() - 20 || local_y > height() - 20) {
       return;
@@ -306,8 +306,7 @@ PlumaView::PlumaView() : horizon::Widget() {
       application()->set_focused_widget(this);
     }
 
-    double local_x = (ctx.x - x()) / m_zoom;
-    double local_y = (ctx.y - y()) / m_zoom;
+    auto [local_x, local_y] = toEditorCoords(ctx.x, ctx.y);
 
     if (local_x > width() - 20 || local_y > height() - 20) {
       return;
@@ -336,8 +335,8 @@ PlumaView::PlumaView() : horizon::Widget() {
 
   when_mouse_release.connect([this](horizon::MouseButtonEventContext &ctx) {
     if (m_editor) {
-      double local_x = (ctx.x - x()) / m_zoom;
-      double local_y = (ctx.y - y()) / m_zoom;
+      syncEditorScrollFromParent();
+      auto [local_x, local_y] = toEditorCoords(ctx.x, ctx.y);
       pluma::MouseButton pbtn = pluma::MouseButton::None;
       if (ctx.button == 272 || ctx.button == 1)
         pbtn = pluma::MouseButton::Left;
@@ -354,8 +353,8 @@ PlumaView::PlumaView() : horizon::Widget() {
 
   when_mouse_drag.connect([this](horizon::MouseMoveEventContext &ctx) {
     if (m_editor) {
-      double local_x = (ctx.x - x()) / m_zoom;
-      double local_y = (ctx.y - y()) / m_zoom;
+      syncEditorScrollFromParent();
+      auto [local_x, local_y] = toEditorCoords(ctx.x, ctx.y);
       m_editor->onMouseMove(local_x, local_y,
                             static_cast<pluma::ModifierFlags>(ctx.modifiers));
       invalidate();
@@ -364,9 +363,9 @@ PlumaView::PlumaView() : horizon::Widget() {
 
   when_mouse_move.connect([this](horizon::MouseMoveEventContext &ctx) {
     if (m_editor) {
+      syncEditorScrollFromParent();
       m_editor->syncLayout();
-      double local_x = (ctx.x - x()) / m_zoom;
-      double local_y = (ctx.y - y()) / m_zoom;
+      auto [local_x, local_y] = toEditorCoords(ctx.x, ctx.y);
 
       // Ctrl held → check for hyperlink under cursor
       bool ctrl_held = (ctx.modifiers & static_cast<uint32_t>(horizon::WaylandWindow::Modifier::CTRL)) != 0;
@@ -480,6 +479,22 @@ PlumaView::PlumaView() : horizon::Widget() {
   });
 }
 
+std::pair<double, double> PlumaView::toEditorCoords(double ctx_x, double ctx_y) const {
+  int sx = 0, sy = 0;
+  if (auto* scroll = dynamic_cast<horizon::ScrollArea*>(parent())) {
+    sx = scroll->scroll_x();
+    sy = scroll->scroll_y();
+  }
+  return pluma_app::toViewportLocalCoords(ctx_x, ctx_y, x(), y(), m_zoom, sx, sy);
+}
+
+void PlumaView::syncEditorScrollFromParent() {
+  if (!m_editor) return;
+  if (auto* scroll = dynamic_cast<horizon::ScrollArea*>(parent())) {
+    pluma_app::sync_editor_scroll_from_scroll_area(*m_editor, *scroll, m_zoom);
+  }
+}
+
 PlumaView::~PlumaView() {
     if (application() && m_blink_timer_id != 0) {
         application()->stop_timer(m_blink_timer_id);
@@ -552,6 +567,18 @@ void PlumaView::draw(horizon::GraphicsContext &ctx) {
   m_editor->setWorkspaceBackgroundColor(h_to_p(workspace));
   m_editor->setMarginColor(h_to_p(margin));
 
+  // Sync editor viewport from parent ScrollArea so the rendering culling
+  // window covers the visible region.  The ScrollArea offsets PlumaView by
+  // (-scroll_x, -scroll_y) and the editor subtracts (viewport_x_, viewport_y_)
+  // from block coordinates.  Setting viewport to match scroll fixes culling;
+  // the compensating translate below cancels the double-offset in rendering.
+  if (auto* scroll = dynamic_cast<horizon::ScrollArea*>(parent())) {
+    pluma_app::sync_editor_scroll_from_scroll_area(*m_editor, *scroll, m_zoom);
+    // After cairo_scale(m_zoom), 1 user-space unit = m_zoom screen px.
+    // Compensate by translating scroll_y/m_zoom in user-space = scroll_y px.
+    cairo_translate(cr, scroll->scroll_x() / m_zoom, scroll->scroll_y() / m_zoom);
+  }
+
   // Clear the visible area to prevent smearing when scrolling
   double x1, y1, x2, y2;
   cairo_clip_extents(cr, &x1, &y1, &x2, &y2);
@@ -586,16 +613,17 @@ void PlumaView::calculate_layout() {
 
   int target_w = preferred_width();
   int target_h = preferred_height();
+  int editor_viewport_w = target_w;
+  int editor_viewport_h = target_h;
 
   if (parent()) {
     int p_w = parent()->width();
     int p_h = parent()->height();
 
-    bool has_v_scroll = target_h > p_h;
-    bool has_h_scroll = target_w > p_w;
-
-    int viewport_w = p_w - (has_v_scroll ? 16 : 0);
-    int viewport_h = p_h - (has_h_scroll ? 16 : 0);
+    auto [viewport_w, viewport_h] =
+        pluma_app::editorViewportPixelsForScrollArea(target_w, target_h, p_w, p_h);
+    editor_viewport_w = viewport_w;
+    editor_viewport_h = viewport_h;
 
     if (viewport_w > target_w) {
       target_w = viewport_w;
@@ -610,8 +638,8 @@ void PlumaView::calculate_layout() {
   }
 
   if (m_editor) {
-    m_editor->setViewport(pluma::Twips((target_w / m_zoom) * 15),
-                          pluma::Twips((target_h / m_zoom) * 15));
+    m_editor->setViewport(pluma::Twips((editor_viewport_w / m_zoom) * 15),
+                          pluma::Twips((editor_viewport_h / m_zoom) * 15));
   }
 }
 
@@ -845,9 +873,17 @@ void PlumaView::triggerAnalysis() {
 void PlumaView::dispatch_link(const pluma::PlumaEditor::HyperlinkInfo& link,
                               std::shared_ptr<pluma::PlumaEditor> editor) {
     if (link.type == "crossref") {
-        editor->scrollToCrossReference(link.target);
+        if (editor->scrollToCrossReference(link.target)) {
+            if (auto* scroll = dynamic_cast<horizon::ScrollArea*>(parent())) {
+                transfer_editor_scroll_to_scroll_area(*editor, *scroll, m_zoom);
+            }
+        }
     } else if (link.type == "internal") {
-        editor->scrollToBookmark(link.target);
+        if (editor->scrollToBookmark(link.target)) {
+            if (auto* scroll = dynamic_cast<horizon::ScrollArea*>(parent())) {
+                transfer_editor_scroll_to_scroll_area(*editor, *scroll, m_zoom);
+            }
+        }
     } else {
         // URL or mailto — open with system handler via xdg-open
         // Using fork+exec to avoid shell injection.
@@ -875,7 +911,14 @@ std::unique_ptr<horizon::Menu> PlumaView::buildContextMenu(double local_x, doubl
     // iterates current_pages_ which may be stale after delayed single-character inserts.
     m_editor->syncLayout();
 
-    auto blank_page_opt = m_editor->getBlankPageOffsetAtY(pluma::Twips(local_y / m_zoom * 15.0f));
+    // local_y is viewport-local content pixels (from toEditorCoords).
+    // getBlankPageOffsetAtY expects absolute document-space twips, so add
+    // back the scroll offset before converting to twips.
+    double abs_content_y = local_y;
+    if (auto* scroll_area = dynamic_cast<horizon::ScrollArea*>(parent())) {
+        abs_content_y += scroll_area->scroll_y() / m_zoom;
+    }
+    auto blank_page_opt = m_editor->getBlankPageOffsetAtY(pluma::Twips(abs_content_y * 15.0f));
     if (blank_page_opt.has_value()) {
         uint32_t offset = *blank_page_opt;
         auto del_item = std::make_unique<horizon::MenuItem>(horizon::i18n().tr("pluma-writer.context_menu.delete_blank_page"));

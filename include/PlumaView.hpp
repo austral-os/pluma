@@ -88,6 +88,16 @@ private:
     float m_zoom = 1.0f;
     
     std::unique_ptr<horizon::Menu> buildContextMenu(double local_x, double local_y);
+
+    /// Convert parent-relative (screen) coordinates to editor viewport-local
+    /// coordinates.  When PlumaView is inside a ScrollArea the view is
+    /// positioned at (-scroll_x, -scroll_y) so raw (ctx - pos) / zoom yields
+    /// *content* coordinates.  PlumaEditor expects *viewport-local*
+    /// coordinates (0,0 = top-left of visible area) and adds viewport_x/y_
+    /// internally.  Without this subtraction the scroll offset is applied
+    /// twice — once in the content coordinate and once by the editor.
+    std::pair<double, double> toEditorCoords(double ctx_x, double ctx_y) const;
+    void syncEditorScrollFromParent();
 };
 
 } // namespace pluma_app

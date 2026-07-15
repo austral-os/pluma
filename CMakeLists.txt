@@ -115,11 +115,28 @@ if(BUILD_TESTS)
         tests/test_list_paragraph.cpp
     )
 
+    add_executable(pluma_scroll_sync_tests
+        tests/test_scroll_sync.cpp
+    )
+
     target_include_directories(pluma_writer_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     )
 
+    target_include_directories(pluma_scroll_sync_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../lib-pluma/include
+    )
+
+    target_link_directories(pluma_scroll_sync_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../lib-pluma/build)
+
+    target_link_libraries(pluma_scroll_sync_tests PRIVATE
+        PkgConfig::HORIZON
+        pluma
+    )
+
     add_test(NAME paragraph_tests COMMAND pluma_writer_tests)
+    add_test(NAME scroll_sync_tests COMMAND pluma_scroll_sync_tests)
 endif()
 
 include(CPack)
