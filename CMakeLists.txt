@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(pluma-writer VERSION 0.8.10 LANGUAGES CXX)
+project(pluma-writer VERSION 0.8.12 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -38,8 +38,28 @@ target_compile_definitions(pluma-writer PRIVATE APP_VERSION="${PROJECT_VERSION}"
 
 # --- Installation ---
 include(GNUInstallDirs)
+
+set_target_properties(pluma-writer PROPERTIES
+    INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/pluma-writer"
+    BUILD_WITH_INSTALL_RPATH FALSE
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+)
+
 install(TARGETS pluma-writer
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# Empaquetamos libpluma
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../lib-pluma/build/
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pluma-writer
+    FILES_MATCHING PATTERN "libpluma.so*"
+)
+
+# Empaquetamos libhorizon
+pkg_get_variable(HORIZON_LIBDIR horizon libdir)
+install(DIRECTORY ${HORIZON_LIBDIR}/
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pluma-writer
+    FILES_MATCHING PATTERN "libhorizon*.so*"
 )
 
 install(FILES pluma-writer.desktop
@@ -100,7 +120,10 @@ set(CPACK_PACKAGE_CONTACT "horaciodrs@gmail.com")
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "hdrdevs")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libpluma (>= 0.1.0), libhorizon")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON) # Calcula dependencias como cairo o icu automáticamente
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libnuspell5")
+# Ya no dependemos de paquetes externos para libpluma y libhorizon porque van adentro
+# set(CPACK_DEBIAN_PACKAGE_DEPENDS "libpluma (>= 0.1.0), libhorizon")
 set(CPACK_DEBIAN_PACKAGE_SECTION "editors")
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
 
